@@ -414,7 +414,7 @@
         <p class="center muted" style="font-weight:1000;">Hasta Pronto</p>
 
         <div class="btn-row" style="margin-top:14px;">
-          <button id="btn-fin-volver" class="btn-primary">Volver al inicio</button>
+          <button id="btn-fin-volver" class="btn-primary">IR A WHATSAPP</button>
         </div>
 
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
@@ -853,15 +853,6 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
     solicitud: predialDraft.solicitud ? predialDraft.solicitud : 'Recibo de impuesto predial'
   };
 
-  const ok = await Swal.fire({
-    icon:'question',
-    title:'Guardar solicitud',
-    text:'Se enviará tu solicitud y recibirás un mensaje por WhatsApp.',
-    showCancelButton:true,
-    confirmButtonText:'Guardar',
-    cancelButtonText:'Cancelar'
-  });
-  if(!ok.isConfirmed) return;
 
   try{
     const claveRes = await checkClaveAndConsume_(payload.whatsapp);
@@ -912,7 +903,7 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
 
 document.getElementById('btn-fin-volver')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
-  showView('view-login');
+  window.open('https://wa.me/573015291277', '_blank');
 });
 
 /* ================== DEFAULTS ================== */
