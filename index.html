@@ -48,7 +48,6 @@
     h1,h2,h3{ margin: 8px 0 12px; text-align:center; }
     p.helper{ color:#222; font-size:.95rem; text-align:center; margin:8px 0 16px; font-weight:800; }
 
-    /* ✅ 1) descripciones sin negrilla */
     .muted{ color:#1f2937; font-size:.9rem; font-weight:400; }
 
     label{ display:block; font-weight:900; margin: 10px 0 6px; color:var(--primary); }
@@ -617,8 +616,13 @@ document.getElementById('pais-login')?.addEventListener('change', ()=>{
   setWppLoginUIForCountry_(c);
 });
 
-// ✅ Usa el mismo endpoint op=consume_clave para validar acceso y consumir CLAVE
-async function consumeClaveLogin_(whatsappFull){
+// ✅ SOLO valida existencia en CLAVE (NO borra)
+async function checkClaveLogin_(whatsappFull){
+  return await apiGetFromGs_({ op:'check_clave', whatsapp: whatsappFull });
+}
+
+// ✅ consumir (borrar) en CLAVE (se usará al registrar)
+async function consumeClave_(whatsappFull){
   return await apiGetFromGs_({ op:'consume_clave', whatsapp: whatsappFull });
 }
 
@@ -642,9 +646,8 @@ document.getElementById('btn-login')?.addEventListener('click', async ()=>{
 
   const whatsappFull = country.code + national;
 
-  // validar en CLAVE
   try{
-    const claveRes = await consumeClaveLogin_(whatsappFull);
+    const claveRes = await checkClaveLogin_(whatsappFull);
 
     if(String(claveRes?.status||'').toLowerCase() !== 'success'){
       throw new Error(claveRes?.message || 'No fue posible validar el acceso');
@@ -723,7 +726,7 @@ document.getElementById('btn-predial-cancelar')?.addEventListener('click', ()=>{
   resetToLogin_();
 });
 
-/* ✅ Ahora “Guardar” muestra resumen aquí mismo y confirma */
+/* ✅ “Guardar” muestra resumen aquí mismo y confirma */
 document.getElementById('btn-predial-guardar')?.addEventListener('click', async ()=>{
   if(!session.whatsappFull){
     await Swal.fire({ icon:'warning', title:'Sesión inválida', text:'Debes iniciar sesión nuevamente.' });
@@ -821,6 +824,11 @@ document.getElementById('btn-predial-guardar')?.addEventListener('click', async 
       return;
     }
 
+    // ✅ aquí sí consumimos CLAVE (borrando col A y B)
+    try{
+      await consumeClave_(payload.whatsapp);
+    }catch(_){}
+
     await Swal.fire({ icon:'success', title:'Enviado', timer:1600, showConfirmButton:false });
 
     document.getElementById('fin-title').textContent =
@@ -841,7 +849,7 @@ document.getElementById('btn-fin-volver')?.addEventListener('click', ()=>{
 /* ================== DEFAULTS ================== */
 window.addEventListener('load', ()=>{
   initBarrioChoices_();
-  initPaisLoginChoicesOnce_(); // ✅ login usa país
+  initPaisLoginChoicesOnce_();
   resetLoginWpp_();
 });
 </script>
