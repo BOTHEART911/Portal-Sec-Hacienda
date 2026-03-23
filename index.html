@@ -146,10 +146,10 @@
       <div class="card narrow">
         <h1 style="color:var(--primary); text-shadow: 0 2px 2px #031732;">PORTAL SECRETARÍA DE HACIENDA</h1>
 
-        <p class="helper">
+        <div class="muted">
           Al usar este aplicativo, aceptas voluntariamente el tratamiento tus datos Personales.<br>
           Art. 5 Ley 1581 de 2012 y Decreto 1074 de 2015.
-        </p>
+        </div>
 
         <p class="helper" style="margin-top:-4px;">
           Ingresa el número de WhatsApp desde el cual iniciaste la conversación.
@@ -171,6 +171,10 @@
         </div>
 
         <div id="wpp-hint-login" class="chip-note"></div>
+
+         <div class="muted">
+          Si no usas el nímero de WhatsApp Con el que iniciaste la conversación, no podrás avanzar
+        </div>
 
         <div class="btn-row" style="margin-top:14px;">
           <button id="btn-login" class="btn-primary">Iniciar Sesión</button>
@@ -195,6 +199,10 @@
           <button id="btn-go-predial" class="btn-primary">SOLICITUD IMPUESTO PREDIAL</button>
         </div>
 
+         <div class="muted">
+          Proximamente más servicios
+        </div>
+
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
       </div>
@@ -205,12 +213,12 @@
       <div class="card narrow">
         <h2 style="color:var(--primary);">SOLICITUD IMPUESTO PREDIAL</h2>
         <p class="helper">
-          Sigue correctamente las instrucciones para realizar la solicitud del Recibo de Impuesto Predial.<br>
-          Toma un recibo de referencia para ingresar datos asertados.
+          Sigue correctamente las instrucciones para realizar la solicitud del Recibo de Impuesto Predial.<br><br>
+          Toma un recibo de referencia para ingresar datos acertados.
         </p>
 
         <label for="documento">Documento o NIT</label>
-        <div class="muted"><b>Edita</b> si es el caso el DOCUMENTO o NIT del propietario</div>
+        <div class="muted">Ingresa el <b>DOCUMENTO o NIT del propietario</b></div>
         <input id="documento" type="text" inputmode="numeric" placeholder="Sin punto ni guiones" />
 
         <label for="nombre">Nombre del Propietario o razón social</label>
@@ -768,12 +776,12 @@ document.getElementById('btn-predial-guardar')?.addEventListener('click', async 
       <div style="margin-bottom:8px; font-weight:900;">
         RESUMEN DE SOLICITUD <span style="color:var(--primary);">IMPUESTO PREDIAL</span>
       </div>
-      <div>NOMBRE O RAZÓN SOCIAL: <span style="color:#111;">${escapeHtml_(predialDraft.nombre)}</span></div>
-      <div>DOCUMENTO / NIT: <span style="color:#111;">${escapeHtml_(predialDraft.documento)}</span></div>
-      <div>UBICACIÓN PREDIO: <span style="color:#111;">${escapeHtml_(predialDraft.barrio)}</span></div>
-      <div>CÓDIGO CATASTRAL: <span style="color:#111;">${escapeHtml_(codigoTxt)}</span></div>
-      <div>SOLICITUD: <span style="color:#111;">${escapeHtml_(solicitudTxt)}</span></div>
-      <div style="margin-top:10px;color:#111;">WHATSAPP: <span style="color:#0b3b22;">${escapeHtml_(predialDraft.whatsappFull)}</span></div>
+      <div><b>NOMBRE O RAZÓN SOCIAL:</b> <span style="color:#111;">${escapeHtml_(predialDraft.nombre)}</span></div>
+      <div><b>DOCUMENTO / NIT:</b> <span style="color:#111;">${escapeHtml_(predialDraft.documento)}</span></div>
+      <div><b>UBICACIÓN PREDIO:</b> <span style="color:#111;">${escapeHtml_(predialDraft.barrio)}</span></div>
+      <div><b>CÓDIGO CATASTRAL:</b> <span style="color:#111;">${escapeHtml_(codigoTxt)}</span></div>
+      <div><b>SOLICITUD:</b> <span style="color:#111;">${escapeHtml_(solicitudTxt)}</span></div>
+      <div style="margin-top:10px;color:#111;"><b>WHATSAPP:</b> <span style="color:#0b3b22;">${escapeHtml_(predialDraft.whatsappFull)}</span></div>
     </div>
   `;
 
