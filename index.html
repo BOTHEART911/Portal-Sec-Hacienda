@@ -47,7 +47,8 @@
     .narrow{ max-width: 560px; margin: 0 auto; }
     h1,h2,h3{ margin: 8px 0 12px; text-align:center; }
     p.helper{ color:#222; font-size:.95rem; text-align:center; margin:8px 0 16px; font-weight:800; }
-    /* ✅ cambio: helper muted sin negrilla (antes font-weight:700/800) */
+
+    /* ✅ 1) descripciones sin negrilla */
     .muted{ color:#1f2937; font-size:.9rem; font-weight:400; }
 
     label{ display:block; font-weight:900; margin: 10px 0 6px; color:var(--primary); }
@@ -102,7 +103,6 @@
 
     @media (max-width: 700px){ .btn-row{ flex-direction:column; } }
 
-    /* Whatsapp composite input */
     .wpp-row{
       display:grid;
       grid-template-columns: 1fr 1.3fr;
@@ -110,10 +110,6 @@
     }
     @media (max-width:700px){
       .wpp-row{ grid-template-columns:1fr; }
-    }
-    .prefix-wrap{
-      display:flex; gap:10px;
-      align-items:center;
     }
     .prefix{
       width:100%;
@@ -138,7 +134,6 @@
 </head>
 
 <body>
-  <!-- Loader -->
   <div id="loader" class="loader hidden" aria-live="polite" aria-busy="true">
     <div class="spinner-ios" role="status" aria-label="Cargando">
       <i></i><i></i><i></i><i></i><i></i><i></i>
@@ -147,7 +142,6 @@
   </div>
 
   <div class="container">
-
     <!-- VISTA LOGIN -->
     <section id="view-login" class="view active">
       <div class="card narrow">
@@ -161,11 +155,8 @@
         <label for="documento-login">Documento o NIT</label>
         <div class="muted">Por favor ingresa el Documento o NIT para Iniciar Sesión</div>
 
-        <!-- ✅ cambio: ya NO es password; ahora numérico -->
-        <input id="documento-login"
-               type="text"
-               inputmode="numeric"
-               autocomplete="off"
+        <!-- ✅ 2) ya NO password -->
+        <input id="documento-login" type="text" inputmode="numeric" autocomplete="off"
                placeholder="Sin punto ni guiones" />
 
         <div class="btn-row" style="margin-top:14px;">
@@ -217,7 +208,6 @@
         <div class="muted">Selecciona el Barrio, Vereda o Conjunto donde se ubica el predio</div>
         <select id="barrio">
           <option value="" disabled selected>Selecciona el Barrio / Conjunto</option>
-          <!-- mismas opciones del index.md -->
           <option value="ACAPULCO I">ACAPULCO I</option>
           <option value="ACAPULCO II">ACAPULCO II</option>
           <option value="AGUAMARINA">AGUAMARINA</option>
@@ -353,7 +343,7 @@
           <option value="VILLAS DEL MEDITERANEO">VILLAS DEL MEDITERANEO</option>
         </select>
 
-        <label for="codigo">Código Catastral (opcional)</label>
+       <label for="codigo">Código Catastral (opcional)</label>
         <div class="muted">Ingresa el código catastral que aparece en el recibo (14 a 30 dígitos). Si no lo recuerdas, no diligencies este campo.</div>
         <input id="codigo" type="text" inputmode="numeric" placeholder="Entre 14 y 30 dígitos" />
 
@@ -431,7 +421,6 @@
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
       </div>
     </section>
-
   </div>
 
 <script>
@@ -450,12 +439,11 @@ const SOUNDS = {
   back: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Keyboard_Enter_b9k2dc.mp3',
   menu: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Namedrop_Popup_ale2zy.mp3'
 };
-
 function playSoundOnce(url){
   try{ const a=new Audio(url); a.preload='auto'; a.play().catch(()=>{}); }catch(e){}
 }
 
-/* ✅ regla: TODAS las alertas y botón regresar con sonido */
+/* ✅ Todas las alertas con sonido */
 if (window.Swal && typeof Swal.fire === 'function'){
   const __fire = Swal.fire.bind(Swal);
   Swal.fire = function(options = {}, ...rest){
@@ -515,9 +503,9 @@ function escapeHtml_(s){
 
 /* ================== STATE ================== */
 let session = { documentoLogin: '' };
-let predialDraft = null; // {documento,nombre,barrio,codigo,solicitud, whatsappFull}
+let predialDraft = null;
 
-/* ================== API (gs.md) ================== */
+/* ================== API ================== */
 async function apiPostToGs_(body){
   startLoading();
   try{
@@ -526,20 +514,16 @@ async function apiPostToGs_(body){
       headers: { 'Content-Type':'text/plain;charset=utf-8' },
       body: JSON.stringify(body)
     });
-    const j = await r.json();
-    return j;
+    return await r.json();
   } finally { stopLoading(); }
 }
-
-/* ✅ nuevo: endpoint para validar CONTACTOS y CLAVE */
 async function apiGetFromGs_(params){
   startLoading();
   try{
     const qs = new URLSearchParams(params || {}).toString();
     const url = API_BASE + (qs ? ('?' + qs) : '');
     const r = await fetch(url, { method:'GET' });
-    const j = await r.json();
-    return j;
+    return await r.json();
   } finally { stopLoading(); }
 }
 
@@ -547,7 +531,6 @@ async function apiGetFromGs_(params){
 bindNumericSanitizer('documento-login', 10);
 
 async function checkContactoExiste_(documento){
-  // Llama al gs.md -> doGet?op=check_contacto&documento=...
   const res = await apiGetFromGs_({ op:'check_contacto', documento });
   if(String(res?.status||'').toLowerCase() !== 'success') return false;
   return !!res?.exists;
@@ -567,13 +550,8 @@ document.getElementById('btn-login')?.addEventListener('click', async ()=>{
 
   session.documentoLogin = doc;
 
-  // ✅ cambio #4: solo mostrar tratamiento de datos SI NO EXISTE en CONTACTOS col A
   let exists = false;
-  try{
-    exists = await checkContactoExiste_(doc);
-  }catch(_){
-    exists = false; // si falla la consulta, tratamos como no existe (flujo seguro)
-  }
+  try{ exists = await checkContactoExiste_(doc); }catch(_){ exists = false; }
 
   if(exists){
     playSoundOnce(SOUNDS.login);
@@ -650,7 +628,6 @@ function resetPredialForm_(){
 
 document.getElementById('btn-predial-cancelar')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
-  // requisito: cancelar vuelve a login
   session.documentoLogin = '';
   document.getElementById('documento-login').value = '';
   showView('view-login');
@@ -660,8 +637,7 @@ document.getElementById('btn-predial-guardar')?.addEventListener('click', async 
   const documento = onlyDigits(document.getElementById('documento').value || '');
   const nombre = String(document.getElementById('nombre').value || '').trim();
   const barrio = String(document.getElementById('barrio').value || '').trim();
-  const codigoRaw = String(document.getElementById('codigo').value || '');
-  const codigo = onlyDigits(codigoRaw);
+  const codigo = onlyDigits(String(document.getElementById('codigo').value || ''));
   const solicitud = String(document.getElementById('solicitud').value || '').trim();
 
   if(documento.length < 6 || documento.length > 10){
@@ -676,20 +652,17 @@ document.getElementById('btn-predial-guardar')?.addEventListener('click', async 
     await Swal.fire({ icon:'warning', title:'Ubicación requerida', text:'Selecciona el Barrio / Conjunto.' });
     return;
   }
-  if(codigo){
-    if(codigo.length < 14 || codigo.length > 30){
-      await Swal.fire({ icon:'error', title:'Código catastral inválido', text:'Debe tener entre 14 y 30 dígitos.' });
-      return;
-    }
+  if(codigo && (codigo.length < 14 || codigo.length > 30)){
+    await Swal.fire({ icon:'error', title:'Código catastral inválido', text:'Debe tener entre 14 y 30 dígitos.' });
+    return;
   }
 
   predialDraft = { documento, nombre, barrio, codigo, solicitud, whatsappFull:'' };
-
   playSoundOnce(SOUNDS.back);
   openCierre_();
 });
 
-/* ================== CIERRE (País + WhatsApp) ================== */
+/* ================== CIERRE ================== */
 const COUNTRIES = [
   { name:'Colombia', code:'57', nationalLen:10 },
   { name:'Argentina', code:'54', nationalLen:10 },
@@ -717,8 +690,12 @@ const COUNTRIES = [
 
 let choicesPais = null;
 
-function initPaisSelect_(){
+/* ✅ FIX: inicializar una sola vez y NO destruir nunca */
+function initPaisChoicesOnce_(){
   const sel = document.getElementById('pais');
+  if(!sel) return;
+
+  // construir opciones SIEMPRE (pero sin tocar destroy)
   sel.innerHTML = '';
   sel.appendChild(new Option('Selecciona tu país', '', true, true));
   sel.options[0].disabled = true;
@@ -728,15 +705,24 @@ function initPaisSelect_(){
   }
 
   if(!choicesPais){
-    choicesPais = new Choices(sel, { searchEnabled:true, itemSelectText:'', shouldSort:false });
+    choicesPais = new Choices(sel, {
+      searchEnabled:true,
+      itemSelectText:'',
+      shouldSort:false
+    });
   }else{
-    // ✅ refrescar opciones cuando se reabre
+    // si ya existe, le decimos que refresque leyendo el DOM actual
+    // (sin destroy para evitar “No choices to choose from”)
     try{
       choicesPais.clearStore();
-      // rebuild choices
-      choicesPais.destroy();
-    }catch(_){}
-    choicesPais = new Choices(sel, { searchEnabled:true, itemSelectText:'', shouldSort:false });
+      choicesPais.setChoices(
+        COUNTRIES.map(c => ({ value: c.code, label: `${c.name} (${c.code})` })),
+        'value','label', true
+      );
+      choicesPais.setChoiceByValue(''); // placeholder
+    }catch(_){
+      // si algo raro pasa, al menos dejamos el select funcionando nativo:
+    }
   }
 }
 
@@ -762,23 +748,22 @@ function setWppUIForCountry_(country){
   }
 }
 
-/* ✅ cambio #3: reset total al abrir CIERRE (país, indicativo, hint, whatsapp) */
+/* ✅ 3) reset correcto: deja opciones siempre y limpia selección + prefijo/hint */
 function resetCierre_(){
-  initPaisSelect_();
+  initPaisChoicesOnce_();
 
-  // reset del select (incluye Choices)
+  // limpiar selección en Choices
   try{
     if(choicesPais){
-      // setChoiceByValue no funciona para placeholder, entonces limpiamos selección:
       choicesPais.removeActiveItems();
+      choicesPais.setChoiceByValue('');
     }
-  }catch(_){}
+  }catch(_){
+    document.getElementById('pais').value = '';
+  }
 
-  document.getElementById('pais').value = '';
   document.getElementById('whatsapp').value = '';
-  document.getElementById('prefijo').value = '';
-  document.getElementById('wpp-hint').textContent = '';
-  document.getElementById('whatsapp').removeAttribute('maxlength');
+  setWppUIForCountry_(null);
 }
 
 function openCierre_(){
@@ -824,10 +809,8 @@ document.getElementById('btn-finalizar')?.addEventListener('click', async ()=>{
     return;
   }
 
-  const full = country.code + national;
-  predialDraft.whatsappFull = full;
+  predialDraft.whatsappFull = country.code + national;
 
-  // ✅ solo 1 resumen (no “otro resumen” después): aquí solo construimos el box y mostramos view-resumen
   const codigoTxt = predialDraft.codigo ? predialDraft.codigo : 'No Suministrado';
   const solicitudTxt = predialDraft.solicitud ? predialDraft.solicitud : 'No Suministrado';
 
@@ -850,12 +833,9 @@ document.getElementById('btn-corregir')?.addEventListener('click', ()=>{
   showView('view-predial');
 });
 
-/* ================== GUARDAR (envía a gs.md) ================== */
-
+/* ================== GUARDAR ================== */
 async function checkClaveAndConsume_(whatsappFull){
-  // gs.md -> doGet?op=consume_clave&whatsapp=...
-  const res = await apiGetFromGs_({ op:'consume_clave', whatsapp: whatsappFull });
-  return res;
+  return await apiGetFromGs_({ op:'consume_clave', whatsapp: whatsappFull });
 }
 
 document.getElementById('btn-guardar-resumen')?.addEventListener('click', async ()=>{
@@ -883,7 +863,6 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
   });
   if(!ok.isConfirmed) return;
 
-  // ✅ cambio #6: antes de guardar, validar que whatsapp exista en hoja CLAVE (col A)
   try{
     const claveRes = await checkClaveAndConsume_(payload.whatsapp);
 
@@ -892,7 +871,6 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
     }
 
     if(!claveRes?.exists){
-      // alerta info + botón "Ir a Whatsapp"
       const r = await Swal.fire({
         icon:'info',
         title:'Debes solicitar este Portal desde nuestro WhatsApp',
@@ -903,14 +881,11 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
       });
 
       if(r.isConfirmed){
-        // sonido ya lo pone Swal por icon; adicionalmente consideramos "regresar"
         playSoundOnce(SOUNDS.back);
         window.open('https://wa.link/07wrxo', '_blank');
       }
       return;
     }
-
-    // si exists=true => gs.md ya borró coincidencias, seguimos guardando normal
   }catch(e){
     await Swal.fire({ icon:'error', title:'Error', text:String(e.message || e) });
     return;
@@ -918,7 +893,6 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
 
   try{
     const res = await apiPostToGs_(payload);
-
     if(String(res?.status||'').toLowerCase() !== 'success'){
       throw new Error(res?.message || 'Error guardando');
     }
@@ -929,10 +903,7 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
       `${predialDraft.nombre}. Tu solicitud de IMPUESTO PREDIAL ha sido exitosa.`;
 
     predialDraft = null;
-
-    // ✅ para evitar “otro resumen”: limpiamos el resumen al terminar
     document.getElementById('resumen-box').innerHTML = '';
-
     showView('view-fin');
   }catch(e){
     await Swal.fire({ icon:'error', title:'Error', text:String(e.message || e) });
@@ -947,8 +918,8 @@ document.getElementById('btn-fin-volver')?.addEventListener('click', ()=>{
 /* ================== DEFAULTS ================== */
 window.addEventListener('load', ()=>{
   initBarrioChoices_();
+  initPaisChoicesOnce_(); // ✅ importante: inicializar una vez
 });
 </script>
-
 </body>
 </html>
