@@ -501,6 +501,27 @@ function escapeHtml_(s){
     .replace(/'/g,'&#039;');
 }
 
+function resetToLogin_(){
+  // reset estado
+  session.documentoLogin = '';
+  predialDraft = null;
+
+  // limpiar inputs clave
+  const docLogin = document.getElementById('documento-login');
+  if(docLogin) docLogin.value = '';
+
+  // opcional: limpiar formulario predial por si quedó algo
+  try{ resetPredialForm_(); }catch(_){}
+
+  // volver a login
+  showView('view-login');
+}
+
+function goWhatsappAfterReset_(url){
+  resetToLogin_();
+  window.open(url, '_blank');
+}
+  
 /* ================== STATE ================== */
 let session = { documentoLogin: '' };
 let predialDraft = null;
@@ -873,7 +894,7 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
 
       if(r.isConfirmed){
         playSoundOnce(SOUNDS.back);
-        window.open('https://wa.link/07wrxo', '_blank');
+        goWhatsappAfterReset_('https://wa.link/07wrxo');
       }
       return;
     }
@@ -883,10 +904,28 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
   }
 
   try{
-    const res = await apiPostToGs_(payload);
-    if(String(res?.status||'').toLowerCase() !== 'success'){
-      throw new Error(res?.message || 'Error guardando');
-    }
+   const res = await apiPostToGs_(payload);
+
+// 1) error real
+if(String(res?.status||'').toLowerCase() !== 'success'){
+  throw new Error(res?.message || 'Error guardando');
+}
+
+// 2) ✅ caso “ya tiene pendiente”
+if(res?.pending){
+  const r = await Swal.fire({
+    icon:'success',
+    title:'Ya tienes una solicitud pendiente',
+    text:'Revisa el chat',
+    confirmButtonText:'IR A WHATSAPP'
+  });
+
+  if(r.isConfirmed){
+    playSoundOnce(SOUNDS.back);
+    goWhatsappAfterReset_('https://wa.me/573015291277');
+  }
+  return;
+}
 
     await Swal.fire({ icon:'success', title:'Enviado', timer:1600, showConfirmButton:false });
 
@@ -903,7 +942,7 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
 
 document.getElementById('btn-fin-volver')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.back);
-  window.open('https://wa.me/573015291277', '_blank');
+  goWhatsappAfterReset_('https://wa.me/573015291277');
 });
 
 /* ================== DEFAULTS ================== */
