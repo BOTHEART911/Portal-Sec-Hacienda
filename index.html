@@ -152,12 +152,26 @@
           Art. 5 Ley 1581 de 2012 y Decreto 1074 de 2015.
         </p>
 
-        <label for="documento-login">Documento o NIT</label>
-        <div class="muted">Por favor ingresa el Documento o NIT para Iniciar Sesión</div>
+        <p class="helper" style="margin-top:-4px;">
+          Ingresa el número de WhatsApp desde el cual iniciaste la conversación.
+        </p>
 
-        <!-- ✅ 2) ya NO password -->
-        <input id="documento-login" type="text" inputmode="numeric" autocomplete="off"
-               placeholder="Sin punto ni guiones" />
+        <label for="pais-login">País de ubicación</label>
+        <select id="pais-login"></select>
+
+        <div class="wpp-row" style="margin-top:10px;">
+          <div>
+            <label>Indicativo</label>
+            <input id="prefijo-login" class="prefix" type="text" readonly value="">
+          </div>
+          <div>
+            <label for="whatsapp-login">Número de WhatsApp</label>
+            <div class="muted">Escribe solo los dígitos del número (sin el indicativo).</div>
+            <input id="whatsapp-login" type="text" inputmode="numeric" placeholder="Número" />
+          </div>
+        </div>
+
+        <div id="wpp-hint-login" class="chip-note"></div>
 
         <div class="btn-row" style="margin-top:14px;">
           <button id="btn-login" class="btn-primary">Iniciar Sesión</button>
@@ -343,7 +357,7 @@
           <option value="VILLAS DEL MEDITERANEO">VILLAS DEL MEDITERANEO</option>
         </select>
 
-       <label for="codigo">Código Catastral</label>
+        <label for="codigo">Código Catastral</label>
         <div class="muted">Ingresa el código catastral que aparece en el recibo. <b>Si no lo recuerdas, NO diligencies este campo.</b></div>
         <input id="codigo" type="text" inputmode="numeric" placeholder="Entre 14 y 30 dígitos" />
 
@@ -354,54 +368,6 @@
         <div class="btn-row" style="margin-top:14px;">
           <button id="btn-predial-guardar" class="btn-primary">Guardar</button>
           <button id="btn-predial-cancelar" class="danger">Cancelar</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- VISTA CIERRE -->
-    <section id="view-cierre" class="view">
-      <div class="card narrow">
-        <h2 style="color:var(--primary);">CIERRE DE SOLICITUD</h2>
-        <p class="helper">DEBES ESCRIBIR CORRECTAMENTE EL NÚMERO WHATSAPP DESDE EL CUAL INCIASTE LA CONVERSACIÓN EN NUESTRO CHAT</p>
-
-        <label for="pais">País de ubicación</label>
-        <select id="pais"></select>
-
-        <div class="wpp-row" style="margin-top:10px;">
-          <div>
-            <label>Indicativo</label>
-            <input id="prefijo" class="prefix" type="text" readonly value="">
-          </div>
-          <div>
-            <label for="whatsapp">Número de WhatsApp</label>
-            <div class="muted">Escribe solo los dígitos del número (sin el indicativo).</div>
-            <input id="whatsapp" type="text" inputmode="numeric" placeholder="Número" />
-          </div>
-        </div>
-
-        <div id="wpp-hint" class="chip-note"></div>
-
-        <div class="btn-row" style="margin-top:14px;">
-          <button id="btn-finalizar" class="btn-primary">Finalizar</button>
-          <button id="btn-atras-cierre" class="danger">Atrás</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- VISTA RESUMEN -->
-    <section id="view-resumen" class="view">
-      <div class="card narrow">
-        <h2 style="color:var(--primary);">RESUMEN DE SOLICITUD IMPUESTO PREDIAL</h2>
-
-        <div id="resumen-box"
-             style="margin:10px auto 12px; text-align:left; background:rgba(255,255,255,.92); border:2px solid #ddd; border-radius:14px; padding:12px; font-weight:900;">
-        </div>
-
-        <p class="helper">Recibirás un mensaje WhatsApp como confirmación.</p>
-
-        <div class="btn-row" style="margin-top:10px;">
-          <button id="btn-guardar-resumen" class="btn-primary">Guardar</button>
-          <button id="btn-corregir" class="danger">Corregir</button>
         </div>
       </div>
     </section>
@@ -503,12 +469,11 @@ function escapeHtml_(s){
 
 function resetToLogin_(){
   // reset estado
-  session.documentoLogin = '';
+  session.whatsappFull = '';
   predialDraft = null;
 
-  // limpiar inputs clave
-  const docLogin = document.getElementById('documento-login');
-  if(docLogin) docLogin.value = '';
+  // limpiar inputs login
+  try{ resetLoginWpp_(); }catch(_){}
 
   // opcional: limpiar formulario predial por si quedó algo
   try{ resetPredialForm_(); }catch(_){}
@@ -521,9 +486,9 @@ function goWhatsappAfterReset_(url){
   resetToLogin_();
   window.open(url, '_blank');
 }
-  
+
 /* ================== STATE ================== */
-let session = { documentoLogin: '' };
+let session = { whatsappFull: '' };
 let predialDraft = null;
 
 /* ================== API ================== */
@@ -548,142 +513,7 @@ async function apiGetFromGs_(params){
   } finally { stopLoading(); }
 }
 
-/* ================== LOGIN ================== */
-bindNumericSanitizer('documento-login', 10);
-
-async function checkContactoExiste_(documento){
-  const res = await apiGetFromGs_({ op:'check_contacto', documento });
-  if(String(res?.status||'').toLowerCase() !== 'success') return false;
-  return !!res?.exists;
-}
-
-document.getElementById('btn-login')?.addEventListener('click', async ()=>{
-  const doc = onlyDigits(document.getElementById('documento-login').value || '');
-
-  if(!doc){
-    await Swal.fire({ icon:'warning', title:'Campo vacío', text:'Por favor ingresa el Documento o NIT.' });
-    return;
-  }
-  if(doc.length < 6 || doc.length > 10){
-    await Swal.fire({ icon:'error', title:'Número errado', text:'El Documento o NIT debe tener entre 6 y 10 dígitos.' });
-    return;
-  }
-
-  session.documentoLogin = doc;
-
-  let exists = false;
-  try{ exists = await checkContactoExiste_(doc); }catch(_){ exists = false; }
-
-  if(exists){
-    playSoundOnce(SOUNDS.login);
-    showView('view-suite');
-    return;
-  }
-
-  const ok = await Swal.fire({
-    icon:'success',
-    title:'¿Aceptas voluntariamente el tratamiento tus datos Personales?',
-    html:'Art. 5 Ley 1581 de 2012 y Decreto 1074 de 2015.',
-    showCancelButton:true,
-    confirmButtonText:'SI',
-    cancelButtonText:'NO'
-  });
-
-  if(ok.isConfirmed){
-    playSoundOnce(SOUNDS.login);
-    showView('view-suite');
-  }else{
-    await Swal.fire({
-      icon:'info',
-      title:'No podemos realizar la solicitud sin autorización de tratamiento de datos',
-      text:'Regresa a la vista login.'
-    });
-    playSoundOnce(SOUNDS.back);
-    showView('view-login');
-  }
-});
-
-/* ================== SUITE ================== */
-document.getElementById('btn-logout')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.logout);
-  session.documentoLogin = '';
-  document.getElementById('documento-login').value = '';
-  showView('view-login');
-});
-
-let choicesBarrio = null;
-function initBarrioChoices_(){
-  if(choicesBarrio) return;
-  const el = document.getElementById('barrio');
-  if(!el) return;
-  choicesBarrio = new Choices(el, { searchEnabled:true, itemSelectText:'', shouldSort:false });
-}
-
-document.getElementById('btn-go-predial')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-  initBarrioChoices_();
-  resetPredialForm_();
-  showView('view-predial');
-});
-
-/* ================== PREDIAL ================== */
-bindNumericSanitizer('documento', 10);
-bindNumericSanitizer('codigo', 30);
-
-function resetPredialForm_(){
-  document.getElementById('documento').value = session.documentoLogin || '';
-  document.getElementById('nombre').value = '';
-  document.getElementById('codigo').value = '';
-  document.getElementById('solicitud').value = '';
-  try{
-    if(choicesBarrio){
-      choicesBarrio.removeActiveItems();
-      choicesBarrio.setChoiceByValue('');
-    }else{
-      document.getElementById('barrio').value = '';
-    }
-  }catch(_){
-    document.getElementById('barrio').value = '';
-  }
-}
-
-document.getElementById('btn-predial-cancelar')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-  session.documentoLogin = '';
-  document.getElementById('documento-login').value = '';
-  showView('view-login');
-});
-
-document.getElementById('btn-predial-guardar')?.addEventListener('click', async ()=>{
-  const documento = onlyDigits(document.getElementById('documento').value || '');
-  const nombre = String(document.getElementById('nombre').value || '').trim();
-  const barrio = String(document.getElementById('barrio').value || '').trim();
-  const codigo = onlyDigits(String(document.getElementById('codigo').value || ''));
-  const solicitud = String(document.getElementById('solicitud').value || '').trim();
-
-  if(documento.length < 6 || documento.length > 10){
-    await Swal.fire({ icon:'warning', title:'Documento/NIT inválido', text:'Debe tener entre 6 y 10 dígitos.' });
-    return;
-  }
-  if(!validateTwoWords_(nombre)){
-    await Swal.fire({ icon:'warning', title:'Nombre inválido', text:'Debe contener mínimo 2 palabras.' });
-    return;
-  }
-  if(!barrio){
-    await Swal.fire({ icon:'warning', title:'Ubicación requerida', text:'Selecciona el Barrio / Conjunto.' });
-    return;
-  }
-  if(codigo && (codigo.length < 14 || codigo.length > 30)){
-    await Swal.fire({ icon:'error', title:'Código catastral inválido', text:'Debe tener entre 14 y 30 dígitos.' });
-    return;
-  }
-
-  predialDraft = { documento, nombre, barrio, codigo, solicitud, whatsappFull:'' };
-  playSoundOnce(SOUNDS.back);
-  openCierre_();
-});
-
-/* ================== CIERRE ================== */
+/* ================== LOGIN (WhatsApp + CLAVE) ================== */
 const COUNTRIES = [
   { name:'Colombia', code:'57', nationalLen:10 },
   { name:'Estados Unidos', code:'1', nationalLen:10 },
@@ -709,52 +539,16 @@ const COUNTRIES = [
   { name:'Venezuela', code:'58', nationalLen:10 }
 ];
 
-let choicesPais = null;
-
-/* ✅ FIX: inicializar una sola vez y NO destruir nunca */
-function initPaisChoicesOnce_(){
-  const sel = document.getElementById('pais');
-  if(!sel) return;
-
-  // construir opciones SIEMPRE (pero sin tocar destroy)
-  sel.innerHTML = '';
-  sel.appendChild(new Option('Selecciona tu país', '', true, true));
-  sel.options[0].disabled = true;
-
-  for(const c of COUNTRIES){
-    sel.appendChild(new Option(`${c.name} (${c.code})`, c.code));
-  }
-
-  if(!choicesPais){
-    choicesPais = new Choices(sel, {
-      searchEnabled:true,
-      itemSelectText:'',
-      shouldSort:false
-    });
-  }else{
-    // si ya existe, le decimos que refresque leyendo el DOM actual
-    // (sin destroy para evitar “No choices to choose from”)
-    try{
-      choicesPais.clearStore();
-      choicesPais.setChoices(
-        COUNTRIES.map(c => ({ value: c.code, label: `${c.name} (${c.code})` })),
-        'value','label', true
-      );
-      choicesPais.setChoiceByValue(''); // placeholder
-    }catch(_){
-      // si algo raro pasa, al menos dejamos el select funcionando nativo:
-    }
-  }
-}
+let choicesPaisLogin = null;
 
 function getCountryByCode_(code){
   return COUNTRIES.find(c => c.code === String(code||''));
 }
 
-function setWppUIForCountry_(country){
-  const pref = document.getElementById('prefijo');
-  const hint = document.getElementById('wpp-hint');
-  const wpp = document.getElementById('whatsapp');
+function setWppLoginUIForCountry_(country){
+  const pref = document.getElementById('prefijo-login');
+  const hint = document.getElementById('wpp-hint-login');
+  const wpp = document.getElementById('whatsapp-login');
 
   pref.value = country ? country.code : '';
   if(country){
@@ -769,58 +563,74 @@ function setWppUIForCountry_(country){
   }
 }
 
-/* ✅ 3) reset correcto: deja opciones siempre y limpia selección + prefijo/hint */
-function resetCierre_(){
-  initPaisChoicesOnce_();
+function initPaisLoginChoicesOnce_(){
+  const sel = document.getElementById('pais-login');
+  if(!sel) return;
 
-  // limpiar selección en Choices
+  sel.innerHTML = '';
+  sel.appendChild(new Option('Selecciona tu país', '', true, true));
+  sel.options[0].disabled = true;
+
+  for(const c of COUNTRIES){
+    sel.appendChild(new Option(`${c.name} (${c.code})`, c.code));
+  }
+
+  if(!choicesPaisLogin){
+    choicesPaisLogin = new Choices(sel, {
+      searchEnabled:true,
+      itemSelectText:'',
+      shouldSort:false
+    });
+  }else{
+    try{
+      choicesPaisLogin.clearStore();
+      choicesPaisLogin.setChoices(
+        COUNTRIES.map(c => ({ value: c.code, label: `${c.name} (${c.code})` })),
+        'value','label', true
+      );
+      choicesPaisLogin.setChoiceByValue('');
+    }catch(_){}
+  }
+}
+
+function resetLoginWpp_(){
+  initPaisLoginChoicesOnce_();
+
   try{
-    if(choicesPais){
-      choicesPais.removeActiveItems();
-      choicesPais.setChoiceByValue('');
+    if(choicesPaisLogin){
+      choicesPaisLogin.removeActiveItems();
+      choicesPaisLogin.setChoiceByValue('');
     }
   }catch(_){
-    document.getElementById('pais').value = '';
+    document.getElementById('pais-login').value = '';
   }
 
-  document.getElementById('whatsapp').value = '';
-  setWppUIForCountry_(null);
+  document.getElementById('whatsapp-login').value = '';
+  setWppLoginUIForCountry_(null);
 }
 
-function openCierre_(){
-  resetCierre_();
-  showView('view-cierre');
-}
+bindNumericSanitizer('whatsapp-login', 15);
 
-bindNumericSanitizer('whatsapp', 15);
-
-document.getElementById('pais')?.addEventListener('change', ()=>{
-  const code = String(document.getElementById('pais').value || '');
+document.getElementById('pais-login')?.addEventListener('change', ()=>{
+  const code = String(document.getElementById('pais-login').value || '');
   const c = getCountryByCode_(code);
-  setWppUIForCountry_(c);
+  setWppLoginUIForCountry_(c);
 });
 
-document.getElementById('btn-atras-cierre')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-  showView('view-predial');
-});
+// ✅ Usa el mismo endpoint op=consume_clave para validar acceso y consumir CLAVE
+async function consumeClaveLogin_(whatsappFull){
+  return await apiGetFromGs_({ op:'consume_clave', whatsapp: whatsappFull });
+}
 
-document.getElementById('btn-finalizar')?.addEventListener('click', async ()=>{
-  if(!predialDraft){
-    await Swal.fire({ icon:'warning', title:'Solicitud inválida' });
-    playSoundOnce(SOUNDS.back);
-    showView('view-suite');
-    return;
-  }
-
-  const paisCode = String(document.getElementById('pais').value || '').trim();
+document.getElementById('btn-login')?.addEventListener('click', async ()=>{
+  const paisCode = String(document.getElementById('pais-login').value || '').trim();
   const country = getCountryByCode_(paisCode);
   if(!country){
     await Swal.fire({ icon:'warning', title:'País requerido', text:'Selecciona tu país.' });
     return;
   }
 
-  const national = onlyDigits(document.getElementById('whatsapp').value || '');
+  const national = onlyDigits(document.getElementById('whatsapp-login').value || '');
   if(national.length !== country.nationalLen){
     await Swal.fire({
       icon:'error',
@@ -830,53 +640,11 @@ document.getElementById('btn-finalizar')?.addEventListener('click', async ()=>{
     return;
   }
 
-  predialDraft.whatsappFull = country.code + national;
+  const whatsappFull = country.code + national;
 
-  const codigoTxt = predialDraft.codigo ? predialDraft.codigo : 'No Suministrado';
-  const solicitudTxt = predialDraft.solicitud ? predialDraft.solicitud : 'No Suministrado';
-
-  document.getElementById('resumen-box').innerHTML = `
-    <div style="margin-bottom:8px;">RESUMEN DE SOLICITUD <span style="color:var(--primary);">IMPUESTO PREDIAL</span></div>
-    <div>NOMBRE O RAZÓN SOCIAL: <span style="color:#111;">${escapeHtml_(predialDraft.nombre)}</span></div>
-    <div>DOCUMENTO / NIT: <span style="color:#111;">${escapeHtml_(predialDraft.documento)}</span></div>
-    <div>UBICACIÓN PREDIO: <span style="color:#111;">${escapeHtml_(predialDraft.barrio)}</span></div>
-    <div>CÓDIGO CATASTRAL: <span style="color:#111;">${escapeHtml_(codigoTxt)}</span></div>
-    <div>SOLICITUD: <span style="color:#111;">${escapeHtml_(solicitudTxt)}</span></div>
-    <div style="margin-top:10px;color:#111;">WHATSAPP: <span style="color:#0b3b22;">${escapeHtml_(predialDraft.whatsappFull)}</span></div>
-  `;
-
-  playSoundOnce(SOUNDS.back);
-  showView('view-resumen');
-});
-
-document.getElementById('btn-corregir')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-  showView('view-predial');
-});
-
-/* ================== GUARDAR ================== */
-async function checkClaveAndConsume_(whatsappFull){
-  return await apiGetFromGs_({ op:'consume_clave', whatsapp: whatsappFull });
-}
-
-document.getElementById('btn-guardar-resumen')?.addEventListener('click', async ()=>{
-  if(!predialDraft){
-    await Swal.fire({ icon:'warning', title:'Solicitud inválida' });
-    return;
-  }
-
-  const payload = {
-    nombre: predialDraft.nombre,
-    documento: predialDraft.documento,
-    barrio: predialDraft.barrio,
-    whatsapp: predialDraft.whatsappFull,
-    codigo: predialDraft.codigo ? predialDraft.codigo : 'N/A',
-    solicitud: predialDraft.solicitud ? predialDraft.solicitud : 'Recibo de impuesto predial'
-  };
-
-
+  // validar en CLAVE
   try{
-    const claveRes = await checkClaveAndConsume_(payload.whatsapp);
+    const claveRes = await consumeClaveLogin_(whatsappFull);
 
     if(String(claveRes?.status||'').toLowerCase() !== 'success'){
       throw new Error(claveRes?.message || 'No fue posible validar el acceso');
@@ -898,34 +666,160 @@ document.getElementById('btn-guardar-resumen')?.addEventListener('click', async 
       }
       return;
     }
+
+    // ✅ existe => guardar en sesión y entrar a suite
+    session.whatsappFull = whatsappFull;
+    playSoundOnce(SOUNDS.login);
+    showView('view-suite');
   }catch(e){
     await Swal.fire({ icon:'error', title:'Error', text:String(e.message || e) });
+  }
+});
+
+/* ================== SUITE ================== */
+document.getElementById('btn-logout')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.logout);
+  resetToLogin_();
+});
+
+let choicesBarrio = null;
+function initBarrioChoices_(){
+  if(choicesBarrio) return;
+  const el = document.getElementById('barrio');
+  if(!el) return;
+  choicesBarrio = new Choices(el, { searchEnabled:true, itemSelectText:'', shouldSort:false });
+}
+
+document.getElementById('btn-go-predial')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  initBarrioChoices_();
+  resetPredialForm_();
+  showView('view-predial');
+});
+
+/* ================== PREDIAL ================== */
+bindNumericSanitizer('documento', 10);
+bindNumericSanitizer('codigo', 30);
+
+function resetPredialForm_(){
+  document.getElementById('documento').value = '';
+  document.getElementById('nombre').value = '';
+  document.getElementById('codigo').value = '';
+  document.getElementById('solicitud').value = '';
+  try{
+    if(choicesBarrio){
+      choicesBarrio.removeActiveItems();
+      choicesBarrio.setChoiceByValue('');
+    }else{
+      document.getElementById('barrio').value = '';
+    }
+  }catch(_){
+    document.getElementById('barrio').value = '';
+  }
+}
+
+document.getElementById('btn-predial-cancelar')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  resetToLogin_();
+});
+
+/* ✅ Ahora “Guardar” muestra resumen aquí mismo y confirma */
+document.getElementById('btn-predial-guardar')?.addEventListener('click', async ()=>{
+  if(!session.whatsappFull){
+    await Swal.fire({ icon:'warning', title:'Sesión inválida', text:'Debes iniciar sesión nuevamente.' });
+    playSoundOnce(SOUNDS.back);
+    resetToLogin_();
     return;
   }
 
-  try{
-   const res = await apiPostToGs_(payload);
+  const documento = onlyDigits(document.getElementById('documento').value || '');
+  const nombre = String(document.getElementById('nombre').value || '').trim();
+  const barrio = String(document.getElementById('barrio').value || '').trim();
+  const codigo = onlyDigits(String(document.getElementById('codigo').value || ''));
+  const solicitud = String(document.getElementById('solicitud').value || '').trim();
 
-// 1) error real
-if(String(res?.status||'').toLowerCase() !== 'success'){
-  throw new Error(res?.message || 'Error guardando');
-}
+  if(documento.length < 6 || documento.length > 10){
+    await Swal.fire({ icon:'warning', title:'Documento/NIT inválido', text:'Debe tener entre 6 y 10 dígitos.' });
+    return;
+  }
+  if(!validateTwoWords_(nombre)){
+    await Swal.fire({ icon:'warning', title:'Nombre inválido', text:'Debe contener mínimo 2 palabras.' });
+    return;
+  }
+  if(!barrio){
+    await Swal.fire({ icon:'warning', title:'Ubicación requerida', text:'Selecciona el Barrio / Conjunto.' });
+    return;
+  }
+  if(codigo && (codigo.length < 14 || codigo.length > 30)){
+    await Swal.fire({ icon:'error', title:'Código catastral inválido', text:'Debe tener entre 14 y 30 dígitos.' });
+    return;
+  }
 
-// 2) ✅ caso “ya tiene pendiente”
-if(res?.pending){
+  predialDraft = { documento, nombre, barrio, codigo, solicitud, whatsappFull: session.whatsappFull };
+
+  const codigoTxt = predialDraft.codigo ? predialDraft.codigo : 'No Suministrado';
+  const solicitudTxt = predialDraft.solicitud ? predialDraft.solicitud : 'No Suministrado';
+
+  const resumenHtml = `
+    <div style="text-align:left">
+      <div style="margin-bottom:8px; font-weight:900;">
+        RESUMEN DE SOLICITUD <span style="color:var(--primary);">IMPUESTO PREDIAL</span>
+      </div>
+      <div>NOMBRE O RAZÓN SOCIAL: <span style="color:#111;">${escapeHtml_(predialDraft.nombre)}</span></div>
+      <div>DOCUMENTO / NIT: <span style="color:#111;">${escapeHtml_(predialDraft.documento)}</span></div>
+      <div>UBICACIÓN PREDIO: <span style="color:#111;">${escapeHtml_(predialDraft.barrio)}</span></div>
+      <div>CÓDIGO CATASTRAL: <span style="color:#111;">${escapeHtml_(codigoTxt)}</span></div>
+      <div>SOLICITUD: <span style="color:#111;">${escapeHtml_(solicitudTxt)}</span></div>
+      <div style="margin-top:10px;color:#111;">WHATSAPP: <span style="color:#0b3b22;">${escapeHtml_(predialDraft.whatsappFull)}</span></div>
+    </div>
+  `;
+
   const r = await Swal.fire({
-    icon:'success',
-    title:'Ya tienes una solicitud pendiente',
-    text:'Revisa el chat',
-    confirmButtonText:'IR A WHATSAPP'
+    icon: 'info',
+    title: 'Confirma tu solicitud',
+    html: resumenHtml,
+    showCancelButton: true,
+    confirmButtonText: 'Guardar',
+    cancelButtonText: 'Corregir'
   });
 
-  if(r.isConfirmed){
+  if(!r.isConfirmed){
     playSoundOnce(SOUNDS.back);
-    goWhatsappAfterReset_('https://wa.me/573015291277');
+    return;
   }
-  return;
-}
+
+  const payload = {
+    nombre: predialDraft.nombre,
+    documento: predialDraft.documento,
+    barrio: predialDraft.barrio,
+    whatsapp: predialDraft.whatsappFull,
+    codigo: predialDraft.codigo ? predialDraft.codigo : 'N/A',
+    solicitud: predialDraft.solicitud ? predialDraft.solicitud : 'Recibo de impuesto predial'
+  };
+
+  try{
+    const res = await apiPostToGs_(payload);
+
+    // 1) error real
+    if(String(res?.status||'').toLowerCase() !== 'success'){
+      throw new Error(res?.message || 'Error guardando');
+    }
+
+    // 2) ✅ caso “ya tiene pendiente”
+    if(res?.pending){
+      const r2 = await Swal.fire({
+        icon:'success',
+        title:'Ya tienes una solicitud pendiente',
+        text:'Revisa el chat',
+        confirmButtonText:'IR A WHATSAPP'
+      });
+
+      if(r2.isConfirmed){
+        playSoundOnce(SOUNDS.back);
+        goWhatsappAfterReset_('https://wa.me/573015291277');
+      }
+      return;
+    }
 
     await Swal.fire({ icon:'success', title:'Enviado', timer:1600, showConfirmButton:false });
 
@@ -933,7 +827,6 @@ if(res?.pending){
       `${predialDraft.nombre}. Tu solicitud de IMPUESTO PREDIAL ha sido exitosa.`;
 
     predialDraft = null;
-    document.getElementById('resumen-box').innerHTML = '';
     showView('view-fin');
   }catch(e){
     await Swal.fire({ icon:'error', title:'Error', text:String(e.message || e) });
@@ -948,7 +841,8 @@ document.getElementById('btn-fin-volver')?.addEventListener('click', ()=>{
 /* ================== DEFAULTS ================== */
 window.addEventListener('load', ()=>{
   initBarrioChoices_();
-  initPaisChoicesOnce_(); // ✅ importante: inicializar una vez
+  initPaisLoginChoicesOnce_(); // ✅ login usa país
+  resetLoginWpp_();
 });
 </script>
 </body>
