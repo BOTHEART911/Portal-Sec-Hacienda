@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <title>PORTAL SECRETARÍA DE HACIENDA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="icon" href="https://res.cloudinary.com/dqqeavica/image/upload/v1773350454/hacienda_id9f13.png">
+  <meta name="theme-color" content="#06402B"/>
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root{
+      --primary:#06402B;
+      --primary-2:#04281C;
+      --ok:#16a34a;
+      --error:#dc2626;
+      --scrim:rgba(0,0,0,.35);
+      --card-bg: rgba(255,255,255,.06);
+      --card-border:#ddd;
+    }
+    html,body{
+      margin:0; padding:0; height:100%; width:100%;
+      overflow-x:hidden;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:#111;
+      background: url('https://res.cloudinary.com/dqqeavica/image/upload/v1746905870/fondo_verde_tvntsi.png') center/cover fixed no-repeat;
+    }
+    .container{ max-width: 1100px; margin: 0 auto; padding: 16px; }
+    .view{ display:none; opacity:0; transform: translateY(8px);
+      transition: opacity .25s ease, transform .25s ease;
+      box-sizing:border-box; padding:16px;
+    }
+    .view.active{ display:block; opacity:1; transform: translateY(0); }
+
+    .card{
+      background: var(--card-bg);
+      backdrop-filter: blur(3px);
+      border: 2px solid var(--card-border); border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.18);
+      max-width: 860px; margin: 16px auto; padding: 20px 20px 16px;
+    }
+    .narrow{ max-width: 560px; margin: 0 auto; }
+    h1,h2,h3{ margin: 8px 0 12px; text-align:center; }
+    p.helper{ color:#222; font-size:.95rem; text-align:center; margin:8px 0 16px; font-weight:800; }
+    .muted{ color:#1f2937; font-size:.9rem; font-weight:700; }
+    label{ display:block; font-weight:900; margin: 10px 0 6px; color:var(--primary); }
+    input, select, textarea, button{
+      width:100%; padding:12px; box-sizing:border-box;
+      border:1.5px solid #ccc; border-radius:10px; background:#fff;
+      outline:none; transition: border-color .2s ease, transform .08s ease;
+      font-size:16px;
+    }
+    input:focus, select:focus, textarea:focus{ border-color:var(--primary); }
+    button{
+      cursor:pointer; border:2px solid var(--primary);
+      background:#fff; color:#000; font-weight:900;
+    }
+    button:hover{ background:var(--primary-2); color:#fff; border-color:var(--primary-2); }
+    .btn-primary{ background:var(--primary); color:#fff; }
+    .btn-row{ display:flex; gap:12px; flex-wrap:wrap; }
+    .btn-row > *{ flex:1; }
+    .center{ text-align:center; }
+    .brand{ width:240px; border-radius:12px; display:block; margin:12px auto 4px; }
+    .danger{ background:#e11; border-color:#e11; color:#fff; }
+    .danger:hover{ background:#b10; border-color:#b10; }
+
+    .loader{
+      position:fixed; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.35);
+      z-index:9999; backdrop-filter: blur(2px);
+      opacity:1; transition: opacity .12s ease;
+    }
+    .loader.hidden{ opacity:0; pointer-events:none; }
+    .spinner-ios{ position:relative; width:64px; height:64px; }
+    .spinner-ios i{
+      position:absolute; left:50%; top:50%;
+      width:6px; height:18px; margin:-9px 0 0 -3px;
+      background:#fff; border-radius:3px;
+      opacity:.2; animation:iosFade 1.2s linear infinite; transform-origin: center center;
+    }
+    @keyframes iosFade{ 0%, 39%, 100% { opacity:.2; } 40% { opacity:1; } }
+    .spinner-ios i:nth-child(1)  { transform: rotate(  0deg) translateY(-24px); animation-delay:-1.1s; }
+    .spinner-ios i:nth-child(2)  { transform: rotate( 30deg) translateY(-24px); animation-delay:-1.0s; }
+    .spinner-ios i:nth-child(3)  { transform: rotate( 60deg) translateY(-24px); animation-delay:-0.9s; }
+    .spinner-ios i:nth-child(4)  { transform: rotate( 90deg) translateY(-24px); animation-delay:-0.8s; }
+    .spinner-ios i:nth-child(5)  { transform: rotate(120deg) translateY(-24px); animation-delay:-0.7s; }
+    .spinner-ios i:nth-child(6)  { transform: rotate(150deg) translateY(-24px); animation-delay:-0.6s; }
+    .spinner-ios i:nth-child(7)  { transform: rotate(180deg) translateY(-24px); animation-delay:-0.5s; }
+    .spinner-ios i:nth-child(8)  { transform: rotate(210deg) translateY(-24px); animation-delay:-0.4s; }
+    .spinner-ios i:nth-child(9)  { transform: rotate(240deg) translateY(-24px); animation-delay:-0.3s; }
+    .spinner-ios i:nth-child(10) { transform: rotate(270deg) translateY(-24px); animation-delay:-0.2s; }
+    .spinner-ios i:nth-child(11) { transform: rotate(300deg) translateY(-24px); animation-delay:-0.1s; }
+    .spinner-ios i:nth-child(12) { transform: rotate(330deg) translateY(-24px); animation-delay: 0s; }
+
+    @media (max-width: 700px){ .btn-row{ flex-direction:column; } }
+
+    /* Whatsapp composite input */
+    .wpp-row{
+      display:grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap:12px;
+    }
+    @media (max-width:700px){
+      .wpp-row{ grid-template-columns:1fr; }
+    }
+    .prefix-wrap{
+      display:flex; gap:10px;
+      align-items:center;
+    }
+    .prefix{
+      width:100%;
+      padding:12px;
+      border:1.5px solid #ccc;
+      border-radius:10px;
+      background:#f3f4f6;
+      font-weight:1000;
+      color:#111;
+      box-sizing:border-box;
+    }
+    .chip-note{
+      margin-top:8px;
+      padding:10px 12px;
+      background: rgba(255,255,255,.18);
+      border:2px solid rgba(221,221,221,.85);
+      border-radius:14px;
+      font-weight:900;
+      color:#111;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Loader -->
+  <div id="loader" class="loader hidden" aria-live="polite" aria-busy="true">
+    <div class="spinner-ios" role="status" aria-label="Cargando">
+      <i></i><i></i><i></i><i></i><i></i><i></i>
+      <i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- VISTA LOGIN -->
+    <section id="view-login" class="view active">
+      <div class="card narrow">
+        <h1 style="color:var(--primary); text-shadow: 0 2px 2px #031732;">PORTAL SECRETARÍA DE HACIENDA</h1>
+
+        <p class="helper">
+          Al usar este aplicativo, aceptas voluntariamente el tratamiento tus datos Personales.<br>
+          Art. 5 Ley 1581 de 2012 y Decreto 1074 de 2015.
+        </p>
+
+        <label for="documento-login">Documento o NIT</label>
+        <div class="muted">Por favor ingresa el Documento o NIT para Iniciar Sesión</div>
+        <input id="documento-login" type="password" inputmode="numeric" autocomplete="off"
+               placeholder="Sin punto ni guiones" />
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="btn-login" class="btn-primary">Iniciar Sesión</button>
+        </div>
+
+        <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
+        <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
+      </div>
+    </section>
+
+    <!-- VISTA SUITE -->
+    <section id="view-suite" class="view">
+      <div class="card narrow">
+        <div class="btn-row" style="margin-bottom:12px;">
+          <button id="btn-logout" class="danger">Cerrar Sesión</button>
+        </div>
+
+        <h2 style="color:var(--primary); font-weight:1000;">SUITE SECRETARÍA DE HACIENDA</h2>
+        <p class="helper">Selecciona uno de los servicios</p>
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="btn-go-predial" class="btn-primary">SOLICITUD IMPUESTO PREDIAL</button>
+        </div>
+
+        <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
+        <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
+      </div>
+    </section>
+
+    <!-- VISTA SOLICITUD PREDIAL -->
+    <section id="view-predial" class="view">
+      <div class="card narrow">
+        <h2 style="color:var(--primary);">SOLICITUD IMPUESTO PREDIAL</h2>
+        <p class="helper">
+          Sigue correctamente las instrucciones para realizar la solicitud del Recibo de Impuesto Predial.<br>
+          Toma un recibo de referencia para ingresar datos asertados.
+        </p>
+
+        <label for="documento">Documento o NIT</label>
+        <div class="muted">Ingresa el Documento o NIT del propietario</div>
+        <input id="documento" type="text" inputmode="numeric" placeholder="Sin punto ni guiones" />
+
+        <label for="nombre">Nombre del Propietario o razón social</label>
+        <div class="muted">Ingresa el nombre del propietario</div>
+        <input id="nombre" type="text" placeholder="El nombre que está en el recibo" />
+
+        <label for="barrio">Ubicación del Predio</label>
+        <div class="muted">Selecciona el Barrio, Vereda o Conjunto donde se ubica el predio</div>
+        <select id="barrio">
+          <option value="" disabled selected>Selecciona el Barrio / Conjunto</option>
+          <!-- mismas opciones del index.md -->
+          <option value="ACAPULCO I">ACAPULCO I</option>
+          <option value="ACAPULCO II">ACAPULCO II</option>
+          <option value="AGUAMARINA">AGUAMARINA</option>
+          <option value="ALCALA I">ALCALA I</option>
+          <option value="ALFONSO LOPEZ">ALFONSO LOPEZ</option>
+          <option value="ALTAGRACIA I">ALTAGRACIA I</option>
+          <option value="ALTAGRACIA II">ALTAGRACIA II</option>
+          <option value="ALTAGRACIA IV">ALTAGRACIA IV</option>
+          <option value="APROVITEF">APROVITEF</option>
+          <option value="ARAGON I">ARAGON I</option>
+          <option value="ARAGON II">ARAGON II</option>
+          <option value="ARAGON III">ARAGON III</option>
+          <option value="ARAGON IV">ARAGON IV</option>
+          <option value="ARBOLEDA I">ARBOLEDA I</option>
+          <option value="ARBOLEDA II">ARBOLEDA II</option>
+          <option value="BALCONES DE ALEJANDRIA">BALCONES DE ALEJANDRIA</option>
+          <option value="BILBAO">BILBAO</option>
+          <option value="CALA I">CALA I</option>
+          <option value="CANALES">CANALES</option>
+          <option value="CANCUN">CANCUN</option>
+          <option value="CAMALA">CAMALA</option>
+          <option value="CASA DEL SOL I">CASA DEL SOL I</option>
+          <option value="CASA DEL SOL II">CASA DEL SOL II</option>
+          <option value="CENTRO">CENTRO</option>
+          <option value="COLEGIO I">COLEGIO I</option>
+          <option value="COLEGIO II">COLEGIO II</option>
+          <option value="COLEGIO III">COLEGIO III</option>
+          <option value="DUBAI">DUBAI</option>
+          <option value="EL JORDAN">EL JORDAN</option>
+          <option value="EL PORTAL DEL RUBI">EL PORTAL DEL RUBI</option>
+          <option value="GAITAN">GAITAN</option>
+          <option value="HANGARES">HANGARES</option>
+          <option value="INVASION BRISAS DEL CARMEN">INVASION BRISAS DEL CARMEN</option>
+          <option value="INVASION VILLA MAGDALENA">INVASION VILLA MAGDALENA</option>
+          <option value="INVASION VILLA MARIANA">INVASION VILLA MARIANA</option>
+          <option value="IQUEIMA">IQUEIMA</option>
+          <option value="JARDINES DE BABILONIA">JARDINES DE BABILONIA</option>
+          <option value="LA CAPILLA">LA CAPILLA</option>
+          <option value="LA CEIBA">LA CEIBA</option>
+          <option value="LA ESPERANZA">LA ESPERANZA</option>
+          <option value="LA PAZ">LA PAZ</option>
+          <option value="LA UNION">LA UNION</option>
+          <option value="LAS ROSAS">LAS ROSAS</option>
+          <option value="LAS VILLAS">LAS VILLAS</option>
+          <option value="LIBERTADOR">LIBERTADOR</option>
+          <option value="LLERAS">LLERAS</option>
+          <option value="LOS MANGOS I">LOS MANGOS I</option>
+          <option value="LOS MANGOS II">LOS MANGOS II</option>
+          <option value="LOS MANGOS III">LOS MANGOS III</option>
+          <option value="LOS MANGOS IV">LOS MANGOS IV</option>
+          <option value="LOS MANGOS V">LOS MANGOS V</option>
+          <option value="LOS MANGOS VI">LOS MANGOS VI</option>
+          <option value="LOS MANGOS VII">LOS MANGOS VII</option>
+          <option value="LOS PIJAOS">LOS PIJAOS</option>
+          <option value="MINUTO DE DIOS">MINUTO DE DIOS</option>
+          <option value="MIRADOR DE LA ESPERANZA">MIRADOR DE LA ESPERANZA</option>
+          <option value="MIRADOR DEL SOL">MIRADOR DEL SOL</option>
+          <option value="MONACO">MONACO</option>
+          <option value="OBRERO">OBRERO</option>
+          <option value="OBRERO DELIRIO">OBRERO DELIRIO</option>
+          <option value="ORQUÍDEAS I">ORQUÍDEAS I</option>
+          <option value="ORQUÍDEAS II">ORQUÍDEAS II</option>
+          <option value="ORQUÍDEAS REAL I">ORQUÍDEAS REAL I</option>
+          <option value="ORQUÍDEAS REAL II">ORQUÍDEAS REAL II</option>
+          <option value="ORQUÍDEAS REAL III">ORQUÍDEAS REAL III</option>
+          <option value="ORQUÍDEAS REAL IV">ORQUÍDEAS REAL IV</option>
+          <option value="PARADERO I">PARADERO I</option>
+          <option value="PARADERO II">PARADERO II</option>
+          <option value="PARAISO">PARAISO</option>
+          <option value="PAKISTAN I">PAKISTAN I</option>
+          <option value="PAKISTAN II">PAKISTAN II</option>
+          <option value="PAKISTAN III">PAKISTAN III</option>
+          <option value="PALO VERDE">PALO VERDE</option>
+          <option value="PARQUES DE ALEJANDRIA I">PARQUES DE ALEJANDRIA I</option>
+          <option value="PARQUES DE ALEJANDRIA II">PARQUES DE ALEJANDRIA II</option>
+          <option value="PARQUES DE ALEJANDRIA III">PARQUES DE ALEJANDRIA III</option>
+          <option value="PARQUES DE ALEJANDRIA IV">PARQUES DE ALEJANDRIA IV</option>
+          <option value="PARQUES DE PAKISTAN I">PARQUES DE PAKISTAN I</option>
+          <option value="PARQUES DE PAKISTAN II">PARQUES DE PAKISTAN II</option>
+          <option value="PARQUES DE PAKISTAN III">PARQUES DE PAKISTAN III</option>
+          <option value="PARQUES DE PAKISTAN IV">PARQUES DE PAKISTAN IV</option>
+          <option value="PARQUES DE PAKISTAN V">PARQUES DE PAKISTAN V</option>
+          <option value="PORTAL DEL RUBY">PORTAL DEL RUBY</option>
+          <option value="PRADERAS DE PALMA REAL">PRADERAS DE PALMA REAL</option>
+          <option value="PRADOS DE SAN REMO">PRADOS DE SAN REMO</option>
+          <option value="PUERTA BLANCA">PUERTA BLANCA</option>
+          <option value="PUERTO BAHIA I">PUERTO BAHIA I</option>
+          <option value="PUERTO BAHIA II">PUERTO BAHIA II</option>
+          <option value="PUERTO DOMINGO">PUERTO DOMINGO</option>
+          <option value="PUERTO MEDITERRANEO">PUERTO MEDITERRANEO</option>
+          <option value="QUINTAS DE SAN ESTEBAN">QUINTAS DE SAN ESTEBAN</option>
+          <option value="QUINTAS DE SAN FRANCISCO">QUINTAS DE SAN FRANCISCO</option>
+          <option value="QUINTAS DEL DIVINO NIÑO">QUINTAS DEL DIVINO NIÑO</option>
+          <option value="QUINTAS FERROVIARIAS">QUINTAS FERROVIARIAS</option>
+          <option value="RIVERAS DEL MAGDALENA">RIVERAS DEL MAGDALENA</option>
+          <option value="SAN ANDRES">SAN ANDRES</option>
+          <option value="SAN FELIPE DE BARAJAS">SAN FELIPE DE BARAJAS</option>
+          <option value="SAN FRANCISCO">SAN FRANCISCO</option>
+          <option value="SAN LUIS">SAN LUIS</option>
+          <option value="SANTA ANA">SANTA ANA</option>
+          <option value="SANTA MARTHA">SANTA MARTHA</option>
+          <option value="SANTA MONICA I">SANTA MONICA I</option>
+          <option value="SANTA MONICA II">SANTA MONICA II</option>
+          <option value="SINAI">SINAI</option>
+          <option value="SOL Y BRISA">SOL Y BRISA</option>
+          <option value="TARQUI">TARQUI</option>
+          <option value="TAYRONA">TAYRONA</option>
+          <option value="TERRAZAS DE ALEJANDRIA">TERRAZAS DE ALEJANDRIA</option>
+          <option value="TOPACIO">TOPACIO</option>
+          <option value="TRIANA">TRIANA</option>
+          <option value="URBANIZACION ARRAYANES">URBANIZACION ARRAYANES</option>
+          <option value="URBANIZACION EL PALMAR">URBANIZACION EL PALMAR</option>
+          <option value="URBANIZACION EL PORTAL">URBANIZACION EL PORTAL</option>
+          <option value="URBANIZACION EL RUBY">URBANIZACION EL RUBY</option>
+          <option value="URBANIZACION LOS ALMENDROS">URBANIZACION LOS ALMENDROS</option>
+          <option value="URBANIZACION VILLA LUCIA">URBANIZACION VILLA LUCIA</option>
+          <option value="URBANIZACION VILLA MAGDALENA I">URBANIZACION VILLA MAGDALENA I</option>
+          <option value="URBANIZACION VILLA MAGDALENA II">URBANIZACION VILLA MAGDALENA II</option>
+          <option value="URBANIZACION VILLA MAGDALENA III">URBANIZACION VILLA MAGDALENA III</option>
+          <option value="URBANIZACIÓN VILLA MARIANA">URBANIZACIÓN VILLA MARIANA</option>
+          <option value="VALLESUE">VALLESUE</option>
+          <option value="VENECIA I">VENECIA I</option>
+          <option value="VENECIA II">VENECIA II</option>
+          <option value="VENECIA III">VENECIA III</option>
+          <option value="VENECIA IV">VENECIA IV</option>
+          <option value="VILLA DE LAS PALMAS">VILLA DE LAS PALMAS</option>
+          <option value="VILLA DEL RIO I">VILLA DEL RIO I</option>
+          <option value="VILLA DEL RIO II">VILLA DEL RIO II</option>
+          <option value="VILLA DEL SOL">VILLA DEL SOL</option>
+          <option value="VILLA ESPERANZA">VILLA ESPERANZA</option>
+          <option value="VILLA LAS PALMAS">VILLA LAS PALMAS</option>
+          <option value="VILLA MEDINA">VILLA MEDINA</option>
+          <option value="VILLAS DEL MEDITERANEO">VILLAS DEL MEDITERANEO</option>
+        </select>
+
+        <label for="codigo">Código Catastral (opcional)</label>
+        <div class="muted">Ingresa el código catastral que aparece en el recibo (14 a 30 dígitos). Si no lo recuerdas, no diligencies este campo.</div>
+        <input id="codigo" type="text" inputmode="numeric" placeholder="Entre 14 y 30 dígitos" />
+
+        <label for="solicitud">Amplía la Solicitud (opcional)</label>
+        <div class="muted">Amplía detalles o si tienes más recibos a solicitar. Si no tienes detalles, no diligencies este campo.</div>
+        <textarea id="solicitud" rows="5" placeholder="Amplía la solicitud"></textarea>
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="btn-predial-guardar" class="btn-primary">Guardar</button>
+          <button id="btn-predial-cancelar" class="danger">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA CIERRE -->
+    <section id="view-cierre" class="view">
+      <div class="card narrow">
+        <h2 style="color:var(--primary);">CIERRE DE SOLICITUD</h2>
+        <p class="helper">En este paso registraremos tu número de WhatsApp correctamente.</p>
+
+        <label for="pais">País de ubicación</label>
+        <select id="pais"></select>
+
+        <div class="wpp-row" style="margin-top:10px;">
+          <div>
+            <label>Indicativo</label>
+            <input id="prefijo" class="prefix" type="text" readonly value="">
+          </div>
+          <div>
+            <label for="whatsapp">Número de WhatsApp</label>
+            <div class="muted">Escribe solo los dígitos del número (sin el indicativo).</div>
+            <input id="whatsapp" type="text" inputmode="numeric" placeholder="Número" />
+          </div>
+        </div>
+
+        <div id="wpp-hint" class="chip-note"></div>
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="btn-finalizar" class="btn-primary">Finalizar</button>
+          <button id="btn-atras-cierre" class="danger">Atrás</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA RESUMEN -->
+    <section id="view-resumen" class="view">
+      <div class="card narrow">
+        <h2 style="color:var(--primary);">RESUMEN DE SOLICITUD (IMPUESTO PREDIAL)</h2>
+
+        <div id="resumen-box"
+             style="margin:10px auto 12px; text-align:left; background:rgba(255,255,255,.92); border:2px solid #ddd; border-radius:14px; padding:12px; font-weight:900;">
+        </div>
+
+        <p class="helper">Recibirás un mensaje WhatsApp como confirmación.</p>
+
+        <div class="btn-row" style="margin-top:10px;">
+          <button id="btn-guardar-resumen" class="btn-primary">Guardar</button>
+          <button id="btn-corregir" class="danger">Corregir</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA FIN -->
+    <section id="view-fin" class="view">
+      <div class="card narrow">
+        <h2 id="fin-title" style="color:var(--primary);"></h2>
+        <p class="helper">Revisa tu WhatsApp para conocer el tiempo de respuesta.</p>
+        <p class="center muted" style="font-weight:1000;">Hasta Pronto</p>
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="btn-fin-volver" class="btn-primary">Volver al inicio</button>
+        </div>
+
+        <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
+        <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
+      </div>
+    </section>
+
+  </div>
+
+<script>
+/* ================== CONFIG ================== */
+const API_BASE = 'https://script.google.com/macros/s/AKfycbz-h1rD7PxKd9Vd1PUnFFIujQa-Z-9XEBmNWGKnNdGXDQFPGQK1fNaNCiKJzDdb1apDZw/exec';
+
+/* ================== SONIDOS (tomados del index.md) ================== */
+const SOUNDS = {
+  question: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_fail_ls2aif.mp3',
+  info: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Default_notification_pkp4wr.mp3',
+  success: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_success_t5aawh.mp3',
+  error: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Low_battery_d5qua1.mp3',
+  warning: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Low_battery_d5quaa1.mp3',
+  login: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Siri_star_g1owy4.mp3',
+  logout: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Siri_End_kelv02.mp3',
+  back: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Keyboard_Enter_b9k2dc.mp3',
+  menu: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Namedrop_Popup_ale2zy.mp3'
+};
+function playSoundOnce(url){
+  try{ const a=new Audio(url); a.preload='auto'; a.play().catch(()=>{}); }catch(e){}
+}
+if (window.Swal && typeof Swal.fire === 'function'){
+  const __fire = Swal.fire.bind(Swal);
+  Swal.fire = function(options = {}, ...rest){
+    try{
+      const icon = options.icon || options.type;
+      if (icon && SOUNDS[icon]) playSoundOnce(SOUNDS[icon]);
+    }catch(_){}
+    return __fire(options, ...rest);
+  };
+}
+
+/* ================== LOADER ================== */
+const loader = document.getElementById('loader');
+let loadingCount = 0, loaderTimer = null;
+function startLoading(){
+  loadingCount++;
+  if (loadingCount === 1){
+    loaderTimer = setTimeout(()=>{ loader.classList.remove('hidden'); loaderTimer = null; }, 120);
+  }
+}
+function stopLoading(){
+  if (loadingCount === 0) return;
+  loadingCount--;
+  if (loadingCount === 0){
+    if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
+    loader.classList.add('hidden');
+  }
+}
+
+/* ================== UTIL ================== */
+function showView(id){
+  for(const el of document.querySelectorAll('.view')) el.classList.remove('active');
+  document.getElementById(id)?.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
+function bindNumericSanitizer(id, maxLen){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input', ()=>{
+    const raw = onlyDigits(el.value);
+    el.value = maxLen ? raw.slice(0, maxLen) : raw;
+  });
+}
+function validateTwoWords_(s){
+  const parts = String(s||'').trim().split(/\s+/).filter(Boolean);
+  return parts.length >= 2;
+}
+function escapeHtml_(s){
+  return String(s||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+/* ================== STATE ================== */
+let session = { documentoLogin: '' };
+let predialDraft = null; // {documento,nombre,barrio,codigo,solicitud, whatsappFull}
+
+/* ================== API (gs.md) ==================
+   gs.md espera POST JSON: {nombre, documento, barrio, whatsapp, codigo, solicitud}
+*/
+async function apiPostToGs_(body){
+  startLoading();
+  try{
+    const r = await fetch(API_BASE, {
+      method:'POST',
+      headers: { 'Content-Type':'text/plain;charset=utf-8' }, // igual estilo index.md
+      body: JSON.stringify(body)
+    });
+    const j = await r.json();
+    return j;
+  } finally { stopLoading(); }
+}
+
+/* ================== LOGIN ================== */
+bindNumericSanitizer('documento-login', 10);
+
+document.getElementById('btn-login')?.addEventListener('click', async ()=>{
+  const doc = onlyDigits(document.getElementById('documento-login').value || '');
+
+  if(!doc){
+    await Swal.fire({ icon:'warning', title:'Campo vacío', text:'Por favor ingresa el Documento o NIT.' });
+    return;
+  }
+  if(doc.length < 6 || doc.length > 10){
+    await Swal.fire({ icon:'error', title:'Número errado', text:'El Documento o NIT debe tener entre 6 y 10 dígitos.' });
+    return;
+  }
+
+  session.documentoLogin = doc;
+
+  // NOTA: aquí iba la consulta a CONTACTOS col A.
+  // Como pediste NO cambiar gs.md, no existe endpoint para validar.
+  // Entonces aplicamos el flujo de autorización directamente.
+  const ok = await Swal.fire({
+    icon:'success',
+    title:'¿Aceptas voluntariamente el tratamiento tus datos Personales?',
+    html:'Art. 5 Ley 1581 de 2012 y Decreto 1074 de 2015.',
+    showCancelButton:true,
+    confirmButtonText:'SI',
+    cancelButtonText:'NO'
+  });
+
+  if(ok.isConfirmed){
+    playSoundOnce(SOUNDS.login);
+    showView('view-suite');
+  }else{
+    await Swal.fire({
+      icon:'info',
+      title:'No podemos realizar la solicitud sin autorización de tratamiento de datos',
+      text:'Regresa a la vista login.'
+    });
+    showView('view-login');
+  }
+});
+
+/* ================== SUITE ================== */
+document.getElementById('btn-logout')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.logout);
+  session.documentoLogin = '';
+  document.getElementById('documento-login').value = '';
+  showView('view-login');
+});
+
+let choicesBarrio = null;
+function initBarrioChoices_(){
+  if(choicesBarrio) return;
+  const el = document.getElementById('barrio');
+  if(!el) return;
+  choicesBarrio = new Choices(el, { searchEnabled:true, itemSelectText:'', shouldSort:false });
+}
+
+document.getElementById('btn-go-predial')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  initBarrioChoices_();
+  resetPredialForm_();
+  showView('view-predial');
+});
+
+/* ================== PREDIAL ================== */
+bindNumericSanitizer('documento', 10);
+bindNumericSanitizer('codigo', 30);
+
+function resetPredialForm_(){
+  document.getElementById('documento').value = session.documentoLogin || '';
+  document.getElementById('nombre').value = '';
+  document.getElementById('codigo').value = '';
+  document.getElementById('solicitud').value = '';
+  try{
+    if(choicesBarrio){
+      choicesBarrio.removeActiveItems();
+      choicesBarrio.setChoiceByValue('');
+    }else{
+      document.getElementById('barrio').value = '';
+    }
+  }catch(_){
+    document.getElementById('barrio').value = '';
+  }
+}
+
+document.getElementById('btn-predial-cancelar')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  // requisito: cancelar vuelve a login
+  session.documentoLogin = '';
+  document.getElementById('documento-login').value = '';
+  showView('view-login');
+});
+
+document.getElementById('btn-predial-guardar')?.addEventListener('click', async ()=>{
+  const documento = onlyDigits(document.getElementById('documento').value || '');
+  const nombre = String(document.getElementById('nombre').value || '').trim();
+  const barrio = String(document.getElementById('barrio').value || '').trim();
+  const codigoRaw = String(document.getElementById('codigo').value || '');
+  const codigo = onlyDigits(codigoRaw); // permite ceros izquierda
+  const solicitud = String(document.getElementById('solicitud').value || '').trim();
+
+  if(documento.length < 6 || documento.length > 10){
+    await Swal.fire({ icon:'warning', title:'Documento/NIT inválido', text:'Debe tener entre 6 y 10 dígitos.' });
+    return;
+  }
+  if(!validateTwoWords_(nombre)){
+    await Swal.fire({ icon:'warning', title:'Nombre inválido', text:'Debe contener mínimo 2 palabras.' });
+    return;
+  }
+  if(!barrio){
+    await Swal.fire({ icon:'warning', title:'Ubicación requerida', text:'Selecciona el Barrio / Conjunto.' });
+    return;
+  }
+  if(codigo){
+    if(codigo.length < 14 || codigo.length > 30){
+      await Swal.fire({ icon:'error', title:'Código catastral inválido', text:'Debe tener entre 14 y 30 dígitos.' });
+      return;
+    }
+  }
+
+  predialDraft = { documento, nombre, barrio, codigo, solicitud, whatsappFull:'' };
+
+  playSoundOnce(SOUNDS.back);
+  openCierre_();
+});
+
+/* ================== CIERRE (País + WhatsApp) ================== */
+const COUNTRIES = [
+  { name:'Colombia', code:'57', nationalLen:10 },
+  { name:'Argentina', code:'54', nationalLen:10 },
+  { name:'Bolivia', code:'591', nationalLen:8 },
+  { name:'Brasil', code:'55', nationalLen:11 },
+  { name:'Chile', code:'56', nationalLen:9 },
+  { name:'Costa Rica', code:'506', nationalLen:8 },
+  { name:'Cuba', code:'53', nationalLen:8 },
+  { name:'República Dominicana', code:'1', nationalLen:10 },
+  { name:'Ecuador', code:'593', nationalLen:9 },
+  { name:'El Salvador', code:'503', nationalLen:8 },
+  { name:'Guatemala', code:'502', nationalLen:8 },
+  { name:'Honduras', code:'504', nationalLen:8 },
+  { name:'México', code:'521', nationalLen:10 },
+  { name:'Nicaragua', code:'505', nationalLen:8 },
+  { name:'Panamá', code:'507', nationalLen:8 },
+  { name:'Paraguay', code:'595', nationalLen:9 },
+  { name:'Perú', code:'51', nationalLen:9 },
+  { name:'Uruguay', code:'598', nationalLen:8 },
+  { name:'Venezuela', code:'58', nationalLen:10 },
+  { name:'Estados Unidos', code:'1', nationalLen:10 },
+  { name:'Portugal', code:'351', nationalLen:9 },
+  { name:'España', code:'34', nationalLen:9 },
+];
+
+let choicesPais = null;
+
+function initPaisSelect_(){
+  const sel = document.getElementById('pais');
+  sel.innerHTML = '';
+  sel.appendChild(new Option('Selecciona tu país', '', true, true));
+  sel.options[0].disabled = true;
+
+  for(const c of COUNTRIES){
+    sel.appendChild(new Option(`${c.name} (${c.code})`, c.code));
+  }
+
+  if(!choicesPais){
+    choicesPais = new Choices(sel, { searchEnabled:true, itemSelectText:'', shouldSort:false });
+  }
+}
+
+function getCountryByCode_(code){
+  return COUNTRIES.find(c => c.code === String(code||''));
+}
+
+function setWppUIForCountry_(country){
+  const pref = document.getElementById('prefijo');
+  const hint = document.getElementById('wpp-hint');
+  const wpp = document.getElementById('whatsapp');
+
+  pref.value = country ? country.code : '';
+  if(country){
+    hint.innerHTML =
+      `Indicativo <b>${country.code}</b> + número nacional de <b>${country.nationalLen}</b> dígitos. ` +
+      `Total esperado: <b>${String(country.code).length + country.nationalLen}</b> dígitos.`;
+    // limitamos el input al tamaño nacional
+    wpp.value = onlyDigits(wpp.value).slice(0, country.nationalLen);
+    wpp.setAttribute('maxlength', String(country.nationalLen));
+  }else{
+    hint.textContent = '';
+    wpp.removeAttribute('maxlength');
+  }
+}
+
+function openCierre_(){
+  initPaisSelect_();
+  document.getElementById('whatsapp').value = '';
+  document.getElementById('prefijo').value = '';
+  document.getElementById('wpp-hint').textContent = '';
+  showView('view-cierre');
+}
+
+bindNumericSanitizer('whatsapp', 15);
+
+document.getElementById('pais')?.addEventListener('change', ()=>{
+  const code = String(document.getElementById('pais').value || '');
+  const c = getCountryByCode_(code);
+  setWppUIForCountry_(c);
+});
+
+document.getElementById('btn-atras-cierre')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-predial');
+});
+
+document.getElementById('btn-finalizar')?.addEventListener('click', async ()=>{
+  if(!predialDraft){
+    await Swal.fire({ icon:'warning', title:'Solicitud inválida' });
+    showView('view-suite');
+    return;
+  }
+
+  const paisCode = String(document.getElementById('pais').value || '').trim();
+  const country = getCountryByCode_(paisCode);
+  if(!country){
+    await Swal.fire({ icon:'warning', title:'País requerido', text:'Selecciona tu país.' });
+    return;
+  }
+
+  const national = onlyDigits(document.getElementById('whatsapp').value || '');
+  if(national.length !== country.nationalLen){
+    await Swal.fire({
+      icon:'error',
+      title:'WhatsApp inválido',
+      text:`Para ${country.name} debes ingresar ${country.nationalLen} dígitos (sin indicativo).`
+    });
+    return;
+  }
+
+  const full = country.code + national;
+  predialDraft.whatsappFull = full;
+
+  // resumen
+  const codigoTxt = predialDraft.codigo ? predialDraft.codigo : 'No Suministrado';
+  const solicitudTxt = predialDraft.solicitud ? predialDraft.solicitud : 'No Suministrado';
+
+  document.getElementById('resumen-box').innerHTML = `
+    <div style="margin-bottom:8px;">RESUMEN DE SOLICITUD <span style="color:var(--primary);">IMPUESTO PREDIAL</span></div>
+    <div>NOMBRE O RAZÓN SOCIAL: <span style="color:#111;">${escapeHtml_(predialDraft.nombre)}</span></div>
+    <div>DOCUMENTO / NIT: <span style="color:#111;">${escapeHtml_(predialDraft.documento)}</span></div>
+    <div>UBICACIÓN PREDIO: <span style="color:#111;">${escapeHtml_(predialDraft.barrio)}</span></div>
+    <div>CÓDIGO CATASTRAL: <span style="color:#111;">${escapeHtml_(codigoTxt)}</span></div>
+    <div>SOLICITUD: <span style="color:#111;">${escapeHtml_(solicitudTxt)}</span></div>
+    <div style="margin-top:10px;color:#111;">WHATSAPP: <span style="color:#0b3b22;">${escapeHtml_(predialDraft.whatsappFull)}</span></div>
+  `;
+
+  playSoundOnce(SOUNDS.back);
+  showView('view-resumen');
+});
+
+document.getElementById('btn-corregir')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-predial');
+});
+
+/* ================== GUARDAR (envía a gs.md) ================== */
+document.getElementById('btn-guardar-resumen')?.addEventListener('click', async ()=>{
+  if(!predialDraft){
+    await Swal.fire({ icon:'warning', title:'Solicitud inválida' });
+    return;
+  }
+
+  const payload = {
+    nombre: predialDraft.nombre,
+    documento: predialDraft.documento,
+    barrio: predialDraft.barrio,
+    whatsapp: predialDraft.whatsappFull,
+    codigo: predialDraft.codigo ? predialDraft.codigo : 'N/A', // gs.md convierte NO/NO SUMINISTRADO, aquí mandamos N/A directo si vacío
+    solicitud: predialDraft.solicitud ? predialDraft.solicitud : 'Recibo de impuesto predial'
+  };
+
+  const ok = await Swal.fire({
+    icon:'question',
+    title:'Guardar solicitud',
+    text:'Se enviará tu solicitud y recibirás un mensaje por WhatsApp.',
+    showCancelButton:true,
+    confirmButtonText:'Guardar',
+    cancelButtonText:'Cancelar'
+  });
+  if(!ok.isConfirmed) return;
+
+  try{
+    const res = await apiPostToGs_(payload);
+
+    // gs.md devuelve {status:'success'|'error', message, ...}
+    if(String(res?.status||'').toLowerCase() !== 'success'){
+      throw new Error(res?.message || 'Error guardando');
+    }
+
+    await Swal.fire({ icon:'success', title:'Enviado', timer:1600, showConfirmButton:false });
+
+    document.getElementById('fin-title').textContent =
+      `${predialDraft.nombre}. Tu solicitud de IMPUESTO PREDIAL ha sido exitosa.`;
+
+    predialDraft = null;
+    showView('view-fin');
+  }catch(e){
+    await Swal.fire({ icon:'error', title:'Error', text:String(e.message || e) });
+  }
+});
+
+document.getElementById('btn-fin-volver')?.addEventListener('click', ()=>{
+  playSoundOnce(SOUNDS.back);
+  showView('view-login');
+});
+
+/* ================== DEFAULTS ================== */
+// Por defecto, sugerimos Colombia
+window.addEventListener('load', ()=>{
+  initBarrioChoices_();
+});
+</script>
+
+</body>
+</html>
