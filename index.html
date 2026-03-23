@@ -197,17 +197,17 @@
         </p>
 
         <label for="documento">Documento o NIT</label>
-        <div class="muted">Ingresa el Documento o NIT del propietario</div>
+        <div class="muted"><b>Edita</b> si es el caso el DOCUMENTO o NIT del propietario</div>
         <input id="documento" type="text" inputmode="numeric" placeholder="Sin punto ni guiones" />
 
         <label for="nombre">Nombre del Propietario o razón social</label>
-        <div class="muted">Ingresa el nombre del propietario</div>
+        <div class="muted">Ingresa el <b>NOMBRE del propietario</b></div>
         <input id="nombre" type="text" placeholder="El nombre que está en el recibo" />
 
         <label for="barrio">Ubicación del Predio</label>
-        <div class="muted">Selecciona el Barrio, Vereda o Conjunto donde se ubica el predio</div>
+        <div class="muted">Selecciona el <b>Barrio, Vereda o Conjunto</b> donde se ubica el predio</div>
         <select id="barrio">
-          <option value="" disabled selected>Selecciona el Barrio / Conjunto</option>
+          <option value="" disabled selected>Selecciona la ubicación</option>
           <option value="ACAPULCO I">ACAPULCO I</option>
           <option value="ACAPULCO II">ACAPULCO II</option>
           <option value="AGUAMARINA">AGUAMARINA</option>
@@ -343,12 +343,12 @@
           <option value="VILLAS DEL MEDITERANEO">VILLAS DEL MEDITERANEO</option>
         </select>
 
-       <label for="codigo">Código Catastral (opcional)</label>
-        <div class="muted">Ingresa el código catastral que aparece en el recibo (14 a 30 dígitos). Si no lo recuerdas, no diligencies este campo.</div>
+       <label for="codigo">Código Catastral</label>
+        <div class="muted">Ingresa el código catastral que aparece en el recibo. <b>Si no lo recuerdas, NO diligencies este campo.</b></div>
         <input id="codigo" type="text" inputmode="numeric" placeholder="Entre 14 y 30 dígitos" />
 
         <label for="solicitud">Amplía la Solicitud (opcional)</label>
-        <div class="muted">Amplía detalles o si tienes más recibos a solicitar. Si no tienes detalles, no diligencies este campo.</div>
+        <div class="muted">Amplía detalles o si tienes más recibos a solicitar. <b>Si no tienes detalles, NO diligencies este campo.</b></div>
         <textarea id="solicitud" rows="5" placeholder="Amplía la solicitud"></textarea>
 
         <div class="btn-row" style="margin-top:14px;">
@@ -362,7 +362,7 @@
     <section id="view-cierre" class="view">
       <div class="card narrow">
         <h2 style="color:var(--primary);">CIERRE DE SOLICITUD</h2>
-        <p class="helper">En este paso registraremos tu número de WhatsApp correctamente.</p>
+        <p class="helper">DEBES ESCRIBIR CORRECTAMENTE EL NÚMERO WHATSAPP DESDE EL CUAL INCIASTE LA CONVERSACIÓN EN NUESTRO CHAT</p>
 
         <label for="pais">País de ubicación</label>
         <select id="pais"></select>
@@ -391,7 +391,7 @@
     <!-- VISTA RESUMEN -->
     <section id="view-resumen" class="view">
       <div class="card narrow">
-        <h2 style="color:var(--primary);">RESUMEN DE SOLICITUD (IMPUESTO PREDIAL)</h2>
+        <h2 style="color:var(--primary);">RESUMEN DE SOLICITUD IMPUESTO PREDIAL</h2>
 
         <div id="resumen-box"
              style="margin:10px auto 12px; text-align:left; background:rgba(255,255,255,.92); border:2px solid #ddd; border-radius:14px; padding:12px; font-weight:900;">
@@ -686,6 +686,9 @@ document.getElementById('btn-predial-guardar')?.addEventListener('click', async 
 /* ================== CIERRE ================== */
 const COUNTRIES = [
   { name:'Colombia', code:'57', nationalLen:10 },
+  { name:'Estados Unidos', code:'1', nationalLen:10 },
+  { name:'España', code:'34', nationalLen:9 },
+  { name:'Portugal', code:'351', nationalLen:9 },
   { name:'Argentina', code:'54', nationalLen:10 },
   { name:'Bolivia', code:'591', nationalLen:8 },
   { name:'Brasil', code:'55', nationalLen:11 },
@@ -703,10 +706,7 @@ const COUNTRIES = [
   { name:'Paraguay', code:'595', nationalLen:9 },
   { name:'Perú', code:'51', nationalLen:9 },
   { name:'Uruguay', code:'598', nationalLen:8 },
-  { name:'Venezuela', code:'58', nationalLen:10 },
-  { name:'Estados Unidos', code:'1', nationalLen:10 },
-  { name:'Portugal', code:'351', nationalLen:9 },
-  { name:'España', code:'34', nationalLen:9 },
+  { name:'Venezuela', code:'58', nationalLen:10 }
 ];
 
 let choicesPais = null;
