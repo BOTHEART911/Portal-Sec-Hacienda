@@ -180,6 +180,10 @@
           <button id="btn-login" class="btn-primary">Iniciar Sesión Dinámica</button>
         </div>
 
+        <div class="btn-row" style="margin-top:10px;">
+  <button id="btn-ir-whatsapp" type="button">IR A WHATSAPP</button>
+</div>
+
         <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
       </div>
@@ -410,10 +414,37 @@ const SOUNDS = {
   login: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Siri_star_g1owy4.mp3',
   logout: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Siri_End_kelv02.mp3',
   back: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Keyboard_Enter_b9k2dc.mp3',
-  menu: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Namedrop_Popup_ale2zy.mp3'
+  menu: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Namedrop_Popup_ale2zy.mp3',
+  wpp_inicio: 'https://res.cloudinary.com/dqqeavica/video/upload/v1774314614/ir_whatsapp_inicio_ptip76.mp3',
+  wpp_alerta: 'https://res.cloudinary.com/dqqeavica/video/upload/v1774314614/ir_whatsapp_alerta_b5mkon.mp3'
 };
 function playSoundOnce(url){
   try{ const a=new Audio(url); a.preload='auto'; a.play().catch(()=>{}); }catch(e){}
+}
+
+  let __autoAudio = null;
+
+function stopAutoAudio_(){
+  try{
+    if(__autoAudio){
+      __autoAudio.pause();
+      __autoAudio.currentTime = 0;
+    }
+  }catch(_){}
+}
+
+async function playAutoAudio_(url){
+  try{
+    stopAutoAudio_();
+    if(!__autoAudio){
+      __autoAudio = new Audio();
+      __autoAudio.preload = 'auto';
+    }
+    __autoAudio.src = url;
+    await __autoAudio.play();
+  }catch(_){
+    // si el navegador bloquea autoplay, no rompemos nada
+  }
 }
 
 /* ✅ Todas las alertas con sonido */
@@ -662,21 +693,24 @@ document.getElementById('btn-login')?.addEventListener('click', async ()=>{
     }
 
     if(!claveRes?.exists){
-      const r = await Swal.fire({
-        icon:'info',
-        title:'Debes solicitar esta Suite desde nuestro WhatsApp Oficial',
-        text:'Toca el botón',
-        showCancelButton:true,
-        confirmButtonText:'Ir a Whatsapp',
-        cancelButtonText:'Cerrar'
-      });
-
-      if(r.isConfirmed){
-        playSoundOnce(SOUNDS.back);
-        goWhatsappAfterReset_('https://wa.link/07wrxo');
-      }
-      return;
+  const r = await Swal.fire({
+    icon:'info',
+    title:'Debes solicitar esta Suite desde nuestro WhatsApp Oficial',
+    text:'Toca el botón',
+    showCancelButton:true,
+    confirmButtonText:'Ir a Whatsapp',
+    cancelButtonText:'Cerrar',
+    didOpen: ()=>{
+      playAutoAudio_(SOUNDS.wpp_alerta);
     }
+  });
+
+  if(r.isConfirmed){
+    playSoundOnce(SOUNDS.back);
+    goWhatsappAfterReset_('https://wa.link/07wrxo');
+  }
+  return;
+}
 
     // ✅ existe => guardar en sesión y entrar a suite
     session.whatsappFull = whatsappFull;
@@ -854,11 +888,20 @@ document.getElementById('btn-fin-volver')?.addEventListener('click', ()=>{
   goWhatsappAfterReset_('https://wa.me/573015291277');
 });
 
+  document.getElementById('btn-ir-whatsapp')?.addEventListener('click', ()=>{
+  // opcional: sonido de click (puedes dejarlo o quitarlo)
+  try{ playSoundOnce(SOUNDS.back); }catch(_){}
+  goWhatsappAfterReset_('https://wa.link/y7xm3h');
+});
+
 /* ================== DEFAULTS ================== */
 window.addEventListener('load', ()=>{
   initBarrioChoices_();
   initPaisLoginChoicesOnce_();
   resetLoginWpp_();
+
+  // ✅ AUTO AUDIO al abrir login
+  playAutoAudio_(SOUNDS.wpp_inicio);
 });
 </script>
 </body>
