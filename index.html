@@ -383,7 +383,21 @@
       </div>
     </section>
 
+    <!-- VISTA FIN -->
+    <section id="view-fin" class="view">
+      <div class="card narrow">
+        <h2 id="fin-title" style="color:var(--primary);"></h2>
+        <p class="helper">Revisa tu WhatsApp para conocer el tiempo de respuesta.</p>
+        <p class="center muted" style="font-weight:1000;">Hasta Pronto</p>
 
+        <div class="btn-row" style="margin-top:14px;">
+          <button id="btn-fin-volver" class="btn-primary">IR A WHATSAPP</button>
+        </div>
+
+        <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
+        <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
+      </div>
+    </section>
   </div>
 
 <script>
@@ -767,8 +781,6 @@ document.getElementById('btn-predial-cancelar')?.addEventListener('click', ()=>{
   resetToLogin_();
 });
 
-  
-
 /* ✅ “Guardar” muestra resumen aquí mismo y confirma */
 document.getElementById('btn-predial-guardar')?.addEventListener('click', async ()=>{
   if(!session.whatsappFull){
@@ -829,7 +841,7 @@ document.getElementById('btn-predial-guardar')?.addEventListener('click', async 
     cancelButtonText: 'Corregir'
   });
 
-   if(!r.isConfirmed){
+    if(!r.isConfirmed){
     playSoundOnce(SOUNDS.back);
     return;
   }
@@ -885,6 +897,8 @@ document.getElementById('btn-predial-guardar')?.addEventListener('click', async 
 
   // Terminamos aquí: no mostramos vista fin.
   return;
+});
+
 
   document.getElementById('btn-ir-whatsapp')?.addEventListener('click', ()=>{
   // opcional: sonido de click (puedes dejarlo o quitarlo)
