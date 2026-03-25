@@ -389,6 +389,7 @@
 /* ================== CONFIG ================== */
 const API_BASE = 'https://script.google.com/macros/s/AKfycbz-h1rD7PxKd9Vd1PUnFFIujQa-Z-9XEBmNWGKnNdGXDQFPGQK1fNaNCiKJzDdb1apDZw/exec';
 const WPP_URL = 'https://wa.me/573015291277';
+const WPP_SCHEME = 'whatsapp://send?phone=573015291277';
 
 /* ================== SONIDOS ================== */
 const SOUNDS = {
@@ -509,6 +510,28 @@ function resetToLogin_(){
 function goWhatsappAfterReset_(url){
   resetToLogin_();
   window.open(url, '_blank');
+}
+
+  function openWhatsappBestEffort_(){
+  // Debe llamarse DIRECTO desde un click/tap (sin awaits antes) para evitar bloqueos.
+  let win = null;
+
+  // 1) Intento: nueva pestaña (Chrome suele permitirlo si es por gesto)
+  try{ win = window.open(WPP_URL, '_blank'); }catch(_){}
+
+  // 2) iOS/Safari: a veces no devuelve handle aunque sí abra; damos un pequeño margen.
+  // Si NO abrió, hacemos fallback a misma pestaña.
+  if(!win){
+    try{
+      // (Opcional iOS) intenta abrir la app directamente si existe
+      // window.location.href = WPP_SCHEME;
+      // Si no quieres scheme, comenta la línea anterior.
+    }catch(_){}
+
+    try{ window.location.assign(WPP_URL); }catch(_){}
+  }
+
+  return win;
 }
 
 /* ================== STATE ================== */
@@ -805,75 +828,59 @@ document.getElementById('btn-predial-guardar')?.addEventListener('click', async 
     </div>
   `;
 
-  const r = await Swal.fire({
-    icon: 'info',
-    title: 'Confirma tu solicitud',
-    html: resumenHtml,
-    showCancelButton: true,
-    confirmButtonText: 'Guardar',
-    cancelButtonText: 'Corregir'
-  });
+ const r = await Swal.fire({
+  icon: 'info',
+  title: 'Confirma tu solicitud',
+  html: resumenHtml,
+  showCancelButton: true,
+  confirmButtonText: 'Guardar',
+  cancelButtonText: 'Corregir'
+});
 
-  if(!r.isConfirmed){
-    playSoundOnce(SOUNDS.back);
-    return;
-  }
-
-  // ✅ Opción A: abrir WhatsApp INMEDIATAMENTE (mismo gesto) para evitar bloqueo de popup
-let __wppWin = null;
-try{
-  __wppWin = window.open(WPP_URL, '_blank');
-}catch(_){}
-
-// Fallback: si el popup fue bloqueado, navegamos en la misma pestaña (suele permitirse)
-if(!__wppWin){
-  try{ window.location.href = WPP_URL; }catch(_){}
-}
-
-  const payload = {
-    nombre: predialDraft.nombre,
-    documento: predialDraft.documento,
-    barrio: predialDraft.barrio,
-    whatsapp: predialDraft.whatsappFull,
-    codigo: predialDraft.codigo ? predialDraft.codigo : 'N/A',
-    solicitud: predialDraft.solicitud ? predialDraft.solicitud : 'Recibo de impuesto predial'
-  };
-
-  try{
-    const res = await apiPostToGs_(payload);
-
-    // 1) error real
-    if(String(res?.status||'').toLowerCase() !== 'success'){
-      throw new Error(res?.message || 'Error guardando');
-    }
-
-    // 2) ✅ caso “ya tiene pendiente”
-if(res?.pending){
-  // ✅ Reemplaza vista fin / confirmación: abrir WhatsApp automáticamente
-  goWhatsappAfterReset_('https://wa.me/573015291277');
+if(!r.isConfirmed){
+  playSoundOnce(SOUNDS.back);
   return;
 }
 
-    // ✅ aquí sí consumimos CLAVE (borrando col A y B)
-    try{
-      await consumeClave_(payload.whatsapp);
-    }catch(_){}
+// ✅ Abrir WhatsApp inmediatamente (mismo gesto) => menos bloqueos en Chrome/Safari
+openWhatsappBestEffort_();
 
-    await Swal.fire({ icon:'success', title:'Enviado', timer:1600, showConfirmButton:false });
+const payload = {
+  nombre: predialDraft.nombre,
+  documento: predialDraft.documento,
+  barrio: predialDraft.barrio,
+  whatsapp: predialDraft.whatsappFull,
+  codigo: predialDraft.codigo ? predialDraft.codigo : 'N/A',
+  solicitud: predialDraft.solicitud ? predialDraft.solicitud : 'Recibo de impuesto predial'
+};
 
-    // ✅ Reemplaza vista fin: abrir WhatsApp automáticamente
-predialDraft = null;
-goWhatsappAfterReset_('https://wa.me/573015291277');
-  }catch(e){
-    await Swal.fire({ icon:'error', title:'Error', text:String(e.message || e) });
+try{
+  const res = await apiPostToGs_(payload);
+
+  if(String(res?.status||'').toLowerCase() !== 'success'){
+    throw new Error(res?.message || 'Error guardando');
   }
-});
 
-document.getElementById('btn-fin-volver')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-  goWhatsappAfterReset_('https://wa.me/573015291277');
-});
+  // ✅ caso “ya tiene pendiente”
+  if(res?.pending){
+    predialDraft = null;
+    resetToLogin_();   // no re-abrimos whatsapp (ya se intentó abrir arriba)
+    return;
+  }
 
+  // ✅ consumir CLAVE
+  try{ await consumeClave_(payload.whatsapp); }catch(_){}
+
+  await Swal.fire({ icon:'success', title:'Enviado', timer:1600, showConfirmButton:false });
+
+  predialDraft = null;
+  resetToLogin_();     // no view-fin
+  return;
+
+}catch(e){
+  await Swal.fire({ icon:'error', title:'Error', text:String(e.message || e) });
+}
+  
   document.getElementById('btn-ir-whatsapp')?.addEventListener('click', ()=>{
   // opcional: sonido de click (puedes dejarlo o quitarlo)
   try{ playSoundOnce(SOUNDS.back); }catch(_){}
