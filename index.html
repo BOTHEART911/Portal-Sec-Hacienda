@@ -388,6 +388,7 @@
 <script>
 /* ================== CONFIG ================== */
 const API_BASE = 'https://script.google.com/macros/s/AKfycbz-h1rD7PxKd9Vd1PUnFFIujQa-Z-9XEBmNWGKnNdGXDQFPGQK1fNaNCiKJzDdb1apDZw/exec';
+const WPP_URL = 'https://wa.me/573015291277';
 
 /* ================== SONIDOS ================== */
 const SOUNDS = {
@@ -817,6 +818,17 @@ document.getElementById('btn-predial-guardar')?.addEventListener('click', async 
     playSoundOnce(SOUNDS.back);
     return;
   }
+
+  // ✅ Opción A: abrir WhatsApp INMEDIATAMENTE (mismo gesto) para evitar bloqueo de popup
+let __wppWin = null;
+try{
+  __wppWin = window.open(WPP_URL, '_blank');
+}catch(_){}
+
+// Fallback: si el popup fue bloqueado, navegamos en la misma pestaña (suele permitirse)
+if(!__wppWin){
+  try{ window.location.href = WPP_URL; }catch(_){}
+}
 
   const payload = {
     nombre: predialDraft.nombre,
