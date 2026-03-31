@@ -561,33 +561,63 @@ async function apiGetFromGs_(params){
 
 /* ================== LOGIN (WhatsApp + CLAVE) ================== */
 const COUNTRIES = [
-  { name:'Colombia', code:'57', nationalLen:10 },
-  { name:'Estados Unidos', code:'1', nationalLen:10 },
-  { name:'España', code:'34', nationalLen:9 },
-  { name:'Portugal', code:'351', nationalLen:9 },
-  { name:'Argentina', code:'54', nationalLen:10 },
-  { name:'Bolivia', code:'591', nationalLen:8 },
-  { name:'Brasil', code:'55', nationalLen:11 },
-  { name:'Chile', code:'56', nationalLen:9 },
-  { name:'Costa Rica', code:'506', nationalLen:8 },
-  { name:'Cuba', code:'53', nationalLen:8 },
-  { name:'República Dominicana', code:'1', nationalLen:10 },
-  { name:'Ecuador', code:'593', nationalLen:9 },
-  { name:'El Salvador', code:'503', nationalLen:8 },
-  { name:'Guatemala', code:'502', nationalLen:8 },
-  { name:'Honduras', code:'504', nationalLen:8 },
-  { name:'México', code:'521', nationalLen:10 },
-  { name:'Nicaragua', code:'505', nationalLen:8 },
-  { name:'Panamá', code:'507', nationalLen:8 },
-  { name:'Paraguay', code:'595', nationalLen:9 },
-  { name:'Perú', code:'51', nationalLen:9 },
-  { name:'Uruguay', code:'598', nationalLen:8 },
-  { name:'Venezuela', code:'58', nationalLen:10 },
-  { name:'Italia', code:'39', nationalLen:10 },
-  { name:'Reino Unido', code:'44', nationalLen:10 },
-  { name:'Alemania', code:'49', nationalLen:11 },
+  { name:'Colombia 🇨🇴', code:'57', nationalLen:10 },
+  { name:'Estados Unidos 🇺🇸', code:'1', nationalLen:10 },
+  { name:'España 🇪🇸', code:'34', nationalLen:9 },
+  { name:'Portugal 🇵🇹', code:'351', nationalLen:9 },
+  { name:'Argentina 🇦🇷', code:'54', nationalLen:10 },
+  { name:'Bolivia 🇧🇴', code:'591', nationalLen:8 },
+  { name:'Brasil 🇧🇷', code:'55', nationalLen:11 },
+  { name:'Chile 🇨🇱', code:'56', nationalLen:9 },
+  { name:'Costa Rica 🇨🇷', code:'506', nationalLen:8 },
+  { name:'Cuba 🇨🇺', code:'53', nationalLen:8 },
+  { name:'República Dominicana 🇩🇴', code:'1', nationalLen:10 },
+  { name:'Ecuador 🇪🇨', code:'593', nationalLen:9 },
+  { name:'El Salvador 🇸🇻', code:'503', nationalLen:8 },
+  { name:'Guatemala 🇬🇹', code:'502', nationalLen:8 },
+  { name:'Honduras 🇭🇳', code:'504', nationalLen:8 },
+  { name:'México 🇲🇽', code:'521', nationalLen:10 },
+  { name:'Nicaragua 🇳🇮', code:'505', nationalLen:8 },
+  { name:'Panamá 🇵🇦', code:'507', nationalLen:8 },
+  { name:'Paraguay 🇵🇾', code:'595', nationalLen:9 },
+  { name:'Perú 🇵🇪', code:'51', nationalLen:9 },
+  { name:'Uruguay 🇺🇾', code:'598', nationalLen:8 },
+  { name:'Venezuela 🇻🇪', code:'58', nationalLen:10 },
+  { name:'Italia 🇮🇹', code:'39', nationalLen:10 },
+  { name:'Reino Unido 🇬🇧', code:'44', nationalLen:10 },
+  { name:'Alemania 🇩🇪', code:'49', nationalLen:11 },
 ];
 
+function initPaisLoginChoicesOnce_(){
+  const sel = document.getElementById('pais-login');
+  if(!sel) return;
+
+  sel.innerHTML = '';
+  sel.appendChild(new Option('Selecciona tu país', '', true, true));
+  sel.options[0].disabled = true;
+
+  for(const c of COUNTRIES){
+    // ✅ Ahora se verá: "Colombia 🇨🇴 (57)"
+    sel.appendChild(new Option(`${c.name} (${c.code})`, c.code));
+  }
+
+  if(!choicesPaisLogin){
+    choicesPaisLogin = new Choices(sel, {
+      searchEnabled:true,
+      itemSelectText:'',
+      shouldSort:false
+    });
+  }else{
+    try{
+      choicesPaisLogin.clearStore();
+      choicesPaisLogin.setChoices(
+        COUNTRIES.map(c => ({ value: c.code, label: `${c.name} (${c.code})` })),
+        'value','label', true
+      );
+      choicesPaisLogin.setChoiceByValue('');
+    }catch(_){}
+  }
+}
 let choicesPaisLogin = null;
 
 function getCountryByCode_(code){
