@@ -723,13 +723,6 @@ document.getElementById('btn-login')?.addEventListener('click', async ()=>{
     await Swal.fire({ icon:'info', title:'SELECCIONA TU PAIS' });
     return;
   }
-  
-  const paisCode = String(document.getElementById('pais-login').value || '').trim();
-  const country = getCountryByCode_(paisCode);
-  if(!country){
-    await Swal.fire({ icon:'warning', title:'País requerido', text:'Selecciona tu país.' });
-    return;
-  }
 
   const national = onlyDigits(document.getElementById('whatsapp-login').value || '');
   if(national.length !== country.nationalLen){
