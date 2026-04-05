@@ -104,7 +104,7 @@
 
     .wpp-row{
       display:grid;
-      grid-template-columns: 1fr 1.3fr;
+      grid-template-columns: 1fr;
       gap:12px;
     }
     @media (max-width:700px){
@@ -163,10 +163,12 @@
         <select id="pais-login" required></select>
 
         <div class="wpp-row" style="margin-top:10px;">
-          <div>
-            <label>Indicativo</label>
-            <input id="prefijo-login" class="prefix" type="text" readonly value="">
-          </div>
+          
+          <div hidden style="display:none !important;">
+          <label>Indicativo</label>
+          <input id="prefijo-login" class="prefix" type="text" readonly value="">
+        </div>
+          
           <div>
             <label for="whatsapp-login">Número de WhatsApp</label>
             <div class="muted">Escribe solo los dígitos del número (sin el indicativo).</div>
@@ -632,8 +634,7 @@ function setWppLoginUIForCountry_(country){
   pref.value = country ? country.code : '';
   if(country){
     hint.innerHTML =
-      `Indicativo <b>${country.code}</b> + número nacional de <b>${country.nationalLen}</b> dígitos. ` +
-      `Total esperado: <b>${String(country.code).length + country.nationalLen}</b> dígitos.`;
+  `Indicativo <b>${country.code}</b> + número nacional de <b>${country.nationalLen}</b> dígitos.`;
     wpp.value = onlyDigits(wpp.value).slice(0, country.nationalLen);
     wpp.setAttribute('maxlength', String(country.nationalLen));
   }else{
