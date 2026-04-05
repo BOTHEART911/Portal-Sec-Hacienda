@@ -707,6 +707,17 @@ async function consumeClave_(whatsappFull){
 }
 
 document.getElementById('btn-login')?.addEventListener('click', async ()=>{
+
+// ✅ Validación: País requerido
+const paisCode = String(document.getElementById('pais-login')?.value || '').trim();
+if (!paisCode) {
+  await Swal.fire({
+    icon: 'info',
+    title: 'SELECCIONA TU PAIS'
+  });
+  return;
+}
+  
   const paisCode = String(document.getElementById('pais-login').value || '').trim();
   const country = getCountryByCode_(paisCode);
   if(!country){
