@@ -707,13 +707,24 @@ async function consumeClave_(whatsappFull){
 }
 
 document.getElementById('btn-login')?.addEventListener('click', async ()=>{
-  // ✅ Validación: País requerido
-  const paisCode = String(document.getElementById('pais-login')?.value || '').trim();
-  if (!paisCode) {
+  // ✅ Validación REAL: si no hay país seleccionado, el prefijo queda vacío
+  const prefijo = String(document.getElementById('prefijo-login')?.value || '').trim();
+  if (!prefijo) {
     await Swal.fire({ icon:'info', title:'SELECCIONA TU PAIS' });
     return;
   }
 
+  // (tu código sigue igual)
+  const paisCode = String(document.getElementById('pais-login')?.value || '').trim();
+  const country = getCountryByCode_(paisCode);
+
+  // si quieres, puedes dejar esta validación como respaldo:
+  if(!country){
+    await Swal.fire({ icon:'info', title:'SELECCIONA TU PAIS' });
+    return;
+  }
+  
+  const paisCode = String(document.getElementById('pais-login').value || '').trim();
   const country = getCountryByCode_(paisCode);
   if(!country){
     await Swal.fire({ icon:'warning', title:'País requerido', text:'Selecciona tu país.' });
@@ -740,25 +751,26 @@ document.getElementById('btn-login')?.addEventListener('click', async ()=>{
     }
 
     if(!claveRes?.exists){
-      const r = await Swal.fire({
-        icon:'info',
-        title:'Debes solicitar esta Suite desde nuestro WhatsApp Oficial',
-        text:'Toca el botón',
-        showCancelButton:true,
-        confirmButtonText:'Ir a Whatsapp',
-        cancelButtonText:'Cerrar',
-        didOpen: ()=>{
-          playAutoAudio_(SOUNDS.wpp_alerta);
-        }
-      });
-
-      if(r.isConfirmed){
-        playSoundOnce(SOUNDS.back);
-        goWhatsappAfterReset_('https://wa.link/07wrxo');
-      }
-      return;
+  const r = await Swal.fire({
+    icon:'info',
+    title:'Debes solicitar esta Suite desde nuestro WhatsApp Oficial',
+    text:'Toca el botón',
+    showCancelButton:true,
+    confirmButtonText:'Ir a Whatsapp',
+    cancelButtonText:'Cerrar',
+    didOpen: ()=>{
+      playAutoAudio_(SOUNDS.wpp_alerta);
     }
+  });
 
+  if(r.isConfirmed){
+    playSoundOnce(SOUNDS.back);
+    goWhatsappAfterReset_('https://wa.link/07wrxo');
+  }
+  return;
+}
+
+    // ✅ existe => guardar en sesión y entrar a suite
     session.whatsappFull = whatsappFull;
     playSoundOnce(SOUNDS.login);
     showView('view-suite');
@@ -766,6 +778,7 @@ document.getElementById('btn-login')?.addEventListener('click', async ()=>{
     await Swal.fire({ icon:'error', title:'Error', text:String(e.message || e) });
   }
 });
+
 /* ================== SUITE ================== */
 document.getElementById('btn-logout')?.addEventListener('click', ()=>{
   playSoundOnce(SOUNDS.logout);
