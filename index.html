@@ -907,7 +907,18 @@ function resetLoginWpp_(){
   setWppLoginUIForCountry_(null);
 }
 
-bindNumericSanitizer('whatsapp-login', 15);
+(function(){
+  const el = document.getElementById('whatsapp-login');
+  if(!el) return;
+  el.addEventListener('input', ()=>{
+    const raw = onlyDigits(el.value);
+    const code = String(document.getElementById('pais-login')?.value || '');
+    const country = getCountryByCode_(code);
+    const maxLen = country ? country.nationalLen : 15;
+    // Si hay más dígitos que los permitidos, conserva los ÚLTIMOS (strip del indicativo pegado)
+    el.value = raw.length > maxLen ? raw.slice(-maxLen) : raw;
+  });
+})();
 
 document.getElementById('pais-login')?.addEventListener('change', ()=>{
   const code = String(document.getElementById('pais-login').value || '');
