@@ -910,13 +910,25 @@ function resetLoginWpp_(){
 (function(){
   const el = document.getElementById('whatsapp-login');
   if(!el) return;
+
+  // PASTE: intercepta antes del maxlength → toma los últimos N dígitos
+  el.addEventListener('paste', (e)=>{
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+    const raw = onlyDigits(pasted);
+    const code = String(document.getElementById('pais-login')?.value || '');
+    const country = getCountryByCode_(code);
+    const maxLen = country ? country.nationalLen : 15;
+    el.value = raw.length > maxLen ? raw.slice(-maxLen) : raw;
+  });
+
+  // ESCRITURA NORMAL: recorta desde el inicio (comportamiento correcto)
   el.addEventListener('input', ()=>{
     const raw = onlyDigits(el.value);
     const code = String(document.getElementById('pais-login')?.value || '');
     const country = getCountryByCode_(code);
     const maxLen = country ? country.nationalLen : 15;
-    // Si hay más dígitos que los permitidos, conserva los ÚLTIMOS (strip del indicativo pegado)
-    el.value = raw.length > maxLen ? raw.slice(-maxLen) : raw;
+    el.value = raw.length > maxLen ? raw.slice(0, maxLen) : raw;
   });
 })();
 
