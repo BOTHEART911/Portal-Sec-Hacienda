@@ -347,6 +347,15 @@ button:active { transform: translateY(0); box-shadow: none; }
   .btn-row  { flex-direction: column; }
   .wpp-row  { grid-template-columns: 1fr; }
 }
+    /* PSE: la vista ocupa toda la pantalla sin el padding del container */
+#view-pse {
+  padding: 0 !important;
+  margin: 0 !important;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: var(--primary-2);
+}
   </style>
 </head>
 
@@ -617,6 +626,46 @@ button:active { transform: translateY(0); box-shadow: none; }
         <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
       </div>
     </section>
+
+    <!-- VISTA PSE -->
+<section id="view-pse" class="view">
+  <!-- Topbar fija -->
+  <div style="
+    position:sticky; top:0; z-index:100;
+    background:var(--primary);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px;
+    box-shadow:0 2px 12px rgba(0,0,0,.3);
+  ">
+    <span style="
+      font-family:'Sora',sans-serif; font-weight:800;
+      color:#fff; font-size:clamp(.8rem,2.5vw,1rem);
+    ">💳 PAGO PSE IMPUESTO PREDIAL</span>
+    <button id="btn-pse-cerrar" style="
+      width:auto !important; padding:8px 18px !important;
+      border-radius:10px !important;
+      background:rgba(220,38,38,.2) !important;
+      border:1.5px solid rgba(220,38,38,.45) !important;
+      color:#fca5a5 !important; font-weight:700 !important;
+      font-size:.88rem !important; cursor:pointer;
+      font-family:'IBM Plex Sans',sans-serif !important;
+    ">✕ Cerrar</button>
+  </div>
+
+  <!-- iframe fullscreen -->
+  <iframe
+    id="pse-iframe"
+    src=""
+    title="Portal PSE Impuesto Predial"
+    style="
+      display:block; width:100%; border:none;
+      height:calc(100vh - 48px);
+    "
+    allowfullscreen
+    loading="lazy"
+  ></iframe>
+</section>
+    
   </div>
 
 <script>
@@ -1039,10 +1088,6 @@ document.getElementById('btn-go-predial')?.addEventListener('click', ()=>{
   showView('view-predial');
 });
 
-  document.getElementById('btn-go-pse')?.addEventListener('click', () => {
-  playSoundOnce(SOUNDS.back);
-  window.open('https://flandes.hassqlservice.com/ImpuestosEntidadOld.aspx', '_blank', 'noopener,noreferrer');
-});
 
 /* ================== PREDIAL ================== */
 bindNumericSanitizer('documento', 10);
@@ -1186,6 +1231,21 @@ document.getElementById('btn-predial-guardar')?.addEventListener('click', async 
 
   // Terminamos aquí: no mostramos vista fin.
   return;
+});
+
+  /* ================== PSE ================== */
+document.getElementById('btn-go-pse')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.menu);
+  document.getElementById('pse-iframe').src =
+    'https://flandes.hassqlservice.com/ImpuestosEntidadOld.aspx';
+  showView('view-pse');
+});
+
+document.getElementById('btn-pse-cerrar')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  // Detener carga al salir
+  document.getElementById('pse-iframe').src = 'about:blank';
+  resetToLogin_();
 });
 
 
