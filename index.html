@@ -419,6 +419,10 @@ button:active { transform: translateY(0); box-shadow: none; }
           <button id="btn-go-predial" class="btn-primary">SOLICITUD IMPUESTO PREDIAL</button>
         </div>
 
+        <div class="btn-row" style="margin-top:10px;">
+  <button id="btn-go-pse" class="btn-primary">💳 PAGO PSE IMPUESTO PREDIAL</button>
+</div>
+
          <div class="muted">
           Proximamente más servicios
         </div>
@@ -1033,6 +1037,11 @@ document.getElementById('btn-go-predial')?.addEventListener('click', ()=>{
   initBarrioChoices_();
   resetPredialForm_();
   showView('view-predial');
+});
+
+  document.getElementById('btn-go-pse')?.addEventListener('click', () => {
+  playSoundOnce(SOUNDS.back);
+  window.open('https://flandes.hassqlservice.com/ImpuestosEntidadOld.aspx', '_blank', 'noopener,noreferrer');
 });
 
 /* ================== PREDIAL ================== */
