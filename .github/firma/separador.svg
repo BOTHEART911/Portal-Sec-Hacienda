@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 24" width="1280" height="24" role="img" aria-label="">
+<style>@keyframes corre{0%{stroke-dashoffset:0}100%{stroke-dashoffset:-240}}.l{stroke-dasharray:120 120;animation:corre 3s linear infinite}</style>
+<defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#34a853" stop-opacity="0"/><stop offset=".2" stop-color="#34a853"/><stop offset=".5" stop-color="#fbbc04"/><stop offset=".8" stop-color="#1a73e8"/><stop offset="1" stop-color="#1a73e8" stop-opacity="0"/></linearGradient></defs>
+<path d="M40 12 H1240" stroke="#9fb8aa" stroke-opacity=".35" stroke-width="2" stroke-linecap="round"/>
+<path class="l" d="M40 12 H1240" stroke="url(#g)" stroke-width="3" stroke-linecap="round"/>
+</svg>

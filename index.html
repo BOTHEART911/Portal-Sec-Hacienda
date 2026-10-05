@@ -1,1207 +1,334 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"/>
-  <title>SUITE SECRETARÍA DE HACIENDA</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <title>Suite · Secretaría de Hacienda de Flandes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Suite de la Secretaría de Hacienda de Flandes: solicitud del recibo de impuesto predial y pago PSE.">
+  <meta name="theme-color" content="#06402B">
 
-  <link rel="icon" href="https://res.cloudinary.com/dqqeavica/image/upload/v1773350454/hacienda_id9f13.png">
-  <meta name="theme-color" content="#06402B"/>
+  <!-- El tema se decide antes de pintar: sin destello blanco en modo oscuro -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('portalhac.tema');
+        if (!t) t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'oscuro' : 'claro';
+        document.documentElement.setAttribute('data-tema', t);
+      } catch (e) {}
+    })();
+  </script>
 
+  <link rel="icon" type="image/png" sizes="32x32" href="img/icono-32.png">
+  <link rel="apple-touch-icon" href="img/icono-180.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="preconnect" href="https://script.google.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/styles/choices.min.css">
+  <link rel="stylesheet" href="css/portal.css">
 
-  <style>
-    /* ================================================================
-   new-styles.css — SUITE SECRETARÍA DE HACIENDA
-   Primary: #06402B  |  Light: #0d8a5a  |  Dark: #04281C
-   Fonts: Sora (headings) + IBM Plex Sans (body)
-   ================================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400&display=swap');
-
-/* ---- VARIABLES ---- */
-:root {
-  --primary:        #06402B;
-  --primary-light:  #0d8a5a;
-  --primary-2:      #04281C;
-  --ok:             #16a34a;
-  --error:          #dc2626;
-  --scrim:          rgba(0,0,0,.35);
-  --card-bg:        rgba(255,255,255,.05);
-  --card-border:    rgba(6,64,43,.14);
-  --card-shadow:    0 8px 32px rgba(6,64,43,.12);
-}
-
-/* ---- BASE ---- */
-html, body {
-  margin: 0; padding: 0; height: 100%; width: 100%;
-  overflow-x: hidden;
-  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
-  color: #111;
-  background: url('https://res.cloudinary.com/dqqeavica/image/upload/v1746905870/fondo_verde_tvntsi.png')
-              center/cover fixed no-repeat;
-}
-
-/* ---- LAYOUT ---- */
-.container { max-width: 1100px; margin: 0 auto; padding: 16px; }
-
-.view {
-  display: none; opacity: 0; transform: translateY(8px);
-  transition: opacity .25s ease, transform .25s ease;
-  box-sizing: border-box; padding: 16px;
-}
-.view.active { display: block; opacity: 1; transform: translateY(0); }
-
-/* ---- CARDS ---- */
-.card {
-  background: rgba(255,255,255,.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1.5px solid rgba(6,64,43,.14);
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(6,64,43,.12);
-  max-width: 860px; margin: 16px auto; padding: 24px 24px 20px;
-}
-.narrow { max-width: 560px; margin: 0 auto; }
-
-/* ---- TYPOGRAPHY ---- */
-h1, h2, h3 {
-  margin: 8px 0 12px;
-  text-align: center;
-  font-family: 'Sora', system-ui, sans-serif;
-  font-weight: 800;
-}
-p.helper {
-  color: #222;
-  font-size: .95rem;
-  text-align: center;
-  margin: 8px 0 16px;
-  font-weight: 700;
-}
-.muted { color: #1f2937; font-size: .9rem; font-weight: 400; }
-
-/* ---- LABELS ---- */
-label {
-  display: block;
-  font-weight: 700;
-  margin: 10px 0 6px;
-  color: var(--primary);
-  text-transform: uppercase;
-  font-size: .78rem;
-  letter-spacing: .7px;
-}
-
-/* ---- INPUTS & SELECTS ---- */
-input, select, textarea {
-  width: 100%; padding: 12px; box-sizing: border-box;
-  border: 1.5px solid #ccc;
-  border-radius: 14px;
-  background: rgba(255,255,255,.82);
-  outline: none;
-  font-size: 16px;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
-  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
-}
-input:focus, select:focus, textarea:focus {
-  background: #fff;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(6,64,43,.10);
-}
-
-/* ---- BUTTONS ---- */
-button {
-  width: 100%; padding: 12px; box-sizing: border-box;
-  border: 1.5px solid var(--primary);
-  border-radius: 14px;
-  background: rgba(6,64,43,.07);
-  color: var(--primary);
-  font-weight: 900;
-  cursor: pointer;
-  outline: none;
-  font-size: 16px;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
-  transition: transform .12s ease, background .2s ease,
-              box-shadow .2s ease, color .2s ease, border-color .2s ease;
-}
-button:hover {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 18px rgba(6,64,43,.24);
-}
-button:active { transform: translateY(0); box-shadow: none; }
-
-.btn-primary {
-  background: linear-gradient(135deg, #0d8a5a 0%, #04281C 100%);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 4px 16px rgba(6,64,43,.30);
-}
-.btn-primary:hover {
-  background: linear-gradient(135deg, #10a368 0%, #06402B 100%);
-  color: #fff;
-  border-color: transparent;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(6,64,43,.38);
-}
-
-.danger {
-  background: rgba(220,38,38,.07);
-  border: 1.5px solid rgba(220,38,38,.28);
-  color: #b91c1c;
-}
-.danger:hover {
-  background: rgba(220,38,38,.16);
-  color: #7f1d1d;
-  border-color: rgba(220,38,38,.45);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(220,38,38,.14);
-}
-
-.btn-row { display: flex; gap: 12px; flex-wrap: wrap; }
-.btn-row > * { flex: 1; }
-.center { text-align: center; }
-
-/* ---- BRAND ---- */
-.brand {
-  width: 240px; border-radius: 12px;
-  display: block; margin: 12px auto 4px;
-}
-
-/* ---- PREFIX (read-only indicator) ---- */
-.prefix {
-  width: 100%; padding: 12px;
-  border: 1.5px solid rgba(6,64,43,.18);
-  border-radius: 14px;
-  background: rgba(255,255,255,.45);
-  font-weight: 700;
-  color: #111;
-  box-sizing: border-box;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
-}
-
-/* ---- CHIP NOTE ---- */
-.chip-note {
-  margin-top: 8px;
-  padding: 10px 16px;
-  background: rgba(6,64,43,.06);
-  border: 1.5px solid rgba(6,64,43,.14);
-  border-radius: 999px;
-  font-weight: 600;
-  color: #0f2d1d;
-  font-size: .88rem;
-}
-
-/* ---- WPP ROW ---- */
-.wpp-row { display: grid; grid-template-columns: 1fr; gap: 12px; }
-
-/* ---- LOADER ---- */
-.loader {
-  position: fixed; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,.35);
-  z-index: 9999;
-  backdrop-filter: blur(2px);
-  opacity: 1; transition: opacity .12s ease;
-}
-.loader.hidden { opacity: 0; pointer-events: none; }
-
-.spinner-ios { position: relative; width: 64px; height: 64px; }
-.spinner-ios i {
-  position: absolute; left: 50%; top: 50%;
-  width: 6px; height: 18px; margin: -9px 0 0 -3px;
-  background: #fff; border-radius: 3px;
-  opacity: .2; animation: iosFade 1.2s linear infinite;
-  transform-origin: center center;
-}
-@keyframes iosFade { 0%, 39%, 100% { opacity: .2; } 40% { opacity: 1; } }
-.spinner-ios i:nth-child(1)  { transform: rotate(  0deg) translateY(-24px); animation-delay: -1.1s; }
-.spinner-ios i:nth-child(2)  { transform: rotate( 30deg) translateY(-24px); animation-delay: -1.0s; }
-.spinner-ios i:nth-child(3)  { transform: rotate( 60deg) translateY(-24px); animation-delay: -0.9s; }
-.spinner-ios i:nth-child(4)  { transform: rotate( 90deg) translateY(-24px); animation-delay: -0.8s; }
-.spinner-ios i:nth-child(5)  { transform: rotate(120deg) translateY(-24px); animation-delay: -0.7s; }
-.spinner-ios i:nth-child(6)  { transform: rotate(150deg) translateY(-24px); animation-delay: -0.6s; }
-.spinner-ios i:nth-child(7)  { transform: rotate(180deg) translateY(-24px); animation-delay: -0.5s; }
-.spinner-ios i:nth-child(8)  { transform: rotate(210deg) translateY(-24px); animation-delay: -0.4s; }
-.spinner-ios i:nth-child(9)  { transform: rotate(240deg) translateY(-24px); animation-delay: -0.3s; }
-.spinner-ios i:nth-child(10) { transform: rotate(270deg) translateY(-24px); animation-delay: -0.2s; }
-.spinner-ios i:nth-child(11) { transform: rotate(300deg) translateY(-24px); animation-delay: -0.1s; }
-.spinner-ios i:nth-child(12) { transform: rotate(330deg) translateY(-24px); animation-delay:  0.0s; }
-
-/* ================================================================
-   SWEETALERT2 OVERRIDES
-   ================================================================ */
-.swal2-popup {
-  background: rgba(255,255,255,.97) !important;
-  border: 1.5px solid rgba(6,64,43,.16) !important;
-  border-radius: 22px !important;
-  box-shadow: 0 16px 48px rgba(6,64,43,.22) !important;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
-}
-.swal2-title {
-  font-family: 'Sora', system-ui, sans-serif !important;
-  font-weight: 800 !important;
-  color: var(--primary) !important;
-}
-.swal2-html-container {
-  font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
-}
-.swal2-confirm {
-  background: linear-gradient(135deg, #0d8a5a 0%, #04281C 100%) !important;
-  border: none !important;
-  border-radius: 14px !important;
-  font-weight: 700 !important;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
-  box-shadow: 0 4px 16px rgba(6,64,43,.28) !important;
-  transition: transform .12s ease, box-shadow .2s ease !important;
-}
-.swal2-confirm:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 6px 20px rgba(6,64,43,.38) !important;
-}
-.swal2-confirm:focus {
-  box-shadow: 0 0 0 3px rgba(6,64,43,.22) !important;
-}
-.swal2-cancel {
-  background: rgba(220,38,38,.07) !important;
-  border: 1.5px solid rgba(220,38,38,.28) !important;
-  color: #b91c1c !important;
-  border-radius: 14px !important;
-  font-weight: 700 !important;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
-  transition: background .2s ease !important;
-}
-.swal2-cancel:hover {
-  background: rgba(220,38,38,.15) !important;
-  border-color: rgba(220,38,38,.45) !important;
-}
-.swal2-timer-progress-bar {
-  background: linear-gradient(90deg, #0d8a5a 0%, #04281C 100%) !important;
-}
-.swal2-backdrop-show {
-  background: rgba(6,64,43,.22) !important;
-  backdrop-filter: blur(4px) !important;
-  -webkit-backdrop-filter: blur(4px) !important;
-}
-
-/* ================================================================
-   CHOICES.JS OVERRIDES
-   ================================================================ */
-.choices__inner {
-  border: 1.5px solid #ccc !important;
-  border-radius: 14px !important;
-  background: rgba(255,255,255,.82) !important;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
-  padding: 8px 12px !important;
-  min-height: unset !important;
-  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
-}
-.choices.is-focused .choices__inner,
-.choices[data-type*="select-one"].is-open .choices__inner {
-  border-color: var(--primary) !important;
-  box-shadow: 0 0 0 3px rgba(6,64,43,.10) !important;
-  background: #fff !important;
-}
-.choices[data-type*="select-one"] .choices__inner {
-  padding-bottom: 8px !important;
-}
-.choices__list--dropdown,
-.choices__list[aria-expanded] {
-  border: 1.5px solid rgba(6,64,43,.14) !important;
-  border-radius: 14px !important;
-  box-shadow: 0 8px 24px rgba(6,64,43,.14) !important;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
-  overflow: hidden;
-  background: rgba(255,255,255,.98) !important;
-}
-.choices__list--dropdown .choices__item--selectable.is-highlighted,
-.choices__list[aria-expanded] .choices__item--selectable.is-highlighted {
-  background: rgba(6,64,43,.08) !important;
-  color: var(--primary) !important;
-}
-.choices__list--single .choices__item {
-  font-weight: 600;
-  color: #111;
-}
-.choices__placeholder { color: #999 !important; font-weight: 400 !important; }
-.choices[data-type*="select-one"]::after {
-  border-color: var(--primary) transparent transparent transparent !important;
-}
-.choices[data-type*="select-one"].is-open::after {
-  border-color: transparent transparent var(--primary) transparent !important;
-}
-.choices__input {
-  border-radius: 10px !important;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif !important;
-  background: transparent !important;
-}
-
-/* ================================================================
-   RESPONSIVE
-   ================================================================ */
-@media (max-width: 700px) {
-  .btn-row  { flex-direction: column; }
-  .wpp-row  { grid-template-columns: 1fr; }
-}
-
-  </style>
+  <script src="version.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/scripts/choices.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script defer src="js/portal.js"></script>
 </head>
 
 <body>
-  <div id="loader" class="loader hidden" aria-live="polite" aria-busy="true">
-    <div class="spinner-ios" role="status" aria-label="Cargando">
-      <i></i><i></i><i></i><i></i><i></i><i></i>
-      <i></i><i></i><i></i><i></i><i></i><i></i>
+  <div class="ph-cielo" aria-hidden="true"></div>
+
+  <!-- BARRA DE LA APP (identidad Hacienda) -->
+  <header class="ph-barra">
+    <button type="button" id="ph-atras" class="ph-barra__btn" aria-label="Volver a los servicios" hidden>
+      <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </button>
+    <img class="ph-barra__escudo" src="img/icono-192.png" width="38" height="38" alt="">
+    <div class="ph-barra__txt">
+      <b>Secretaría de Hacienda</b>
+      <span>Alcaldía de Flandes</span>
     </div>
-  </div>
+    <button type="button" id="ph-tema" class="ph-barra__btn" aria-label="Cambiar tema">
+      <svg class="ph-i-luna" viewBox="0 0 24 24"><path d="M20.5 14.3A8.6 8.6 0 0 1 9.7 3.5 8.7 8.7 0 1 0 20.5 14.3z"/></svg>
+      <svg class="ph-i-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.2v2.3M12 19.5v2.3M2.2 12h2.3M19.5 12h2.3M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6"/></svg>
+    </button>
+  </header>
 
-  <div class="container">
-    <!-- VISTA LOGIN -->
-    <section id="view-login" class="view active">
-      <div class="card narrow">
-        <h1 style="color:var(--primary); text-shadow: 0 2px 2px #031732;">SUITE SECRETARÍA DE HACIENDA</h1>
+  <main class="ph-main">
 
-        <div class="muted">
-          Al usar este aplicativo, aceptas voluntariamente el tratamiento tus datos Personales.<br>
-          Art. 5 Ley 1581 de 2012 y Decreto 1074 de 2015.<br><br>
+    <!-- ============ INGRESO ============ -->
+    <section id="view-login" class="ph-vista activa" aria-labelledby="t-login">
+      <div class="ph-hero">
+        <div class="ph-hero__escudo">
+          <span class="ph-hero__halo"></span>
+          <img src="img/escudo.webp" width="132" height="132" alt="Escudo de la Secretaría de Hacienda de Flandes">
         </div>
+        <span class="ph-chip"><i></i>SUITE EN LÍNEA</span>
+        <h1 id="t-login">Secretaría de Hacienda</h1>
+        <p class="ph-sub">Solicita tu recibo de impuesto predial o paga en línea, sin filas.</p>
+      </div>
 
-        <p class="helper" style="margin-top:-4px;">
-          ⏱ INICIO DE SESIÓN DINÁMICA ⏱
-        </p>
-
-        <div class="muted">
-          Si no usas el nímero de WhatsApp Con el que iniciaste la conversación, no podrás avanzar
+      <div class="ph-card">
+        <div class="ph-paso">
+          <span class="ph-paso__ic"><svg viewBox="0 0 24 24"><path d="M20.5 11.6a8.5 8.5 0 0 1-12.6 7.5L3.5 20.5l1.4-4.3A8.5 8.5 0 1 1 20.5 11.6z"/><path d="M8.9 8.6c.5-.1.8.1 1 .5l.6 1.2c.1.3 0 .5-.2.7l-.4.4c.5 1 1.3 1.8 2.3 2.3l.4-.4c.2-.2.4-.3.7-.2l1.2.6c.4.2.6.5.5 1-.1.7-.8 1.2-1.6 1.1-2.7-.3-4.9-2.5-5.2-5.2-.1-.8.4-1.5 1.1-1.6"/></svg></span>
+          <div>
+            <b>Inicio de sesión dinámica</b>
+            <span>Usa el mismo número de WhatsApp con el que escribiste a la Secretaría; con otro número no podrás avanzar.</span>
+          </div>
         </div>
 
         <label for="pais-login">País de ubicación</label>
         <select id="pais-login" required></select>
 
-        <div class="wpp-row" style="margin-top:10px;">
-          
-          <div hidden style="display:none !important;">
-          <label>Indicativo</label>
-          <input id="prefijo-login" class="prefix" type="text" readonly value="">
-        </div>
-          
-          <div>
-            <label for="whatsapp-login">Número de WhatsApp</label>
-            <div class="muted">Escribe solo los dígitos del número (sin el indicativo).</div>
-            <input id="whatsapp-login" type="text" inputmode="numeric" placeholder="Número" />
-          </div>
-        </div>
+        <input id="prefijo-login" type="hidden" value="">
 
-        <div id="wpp-hint-login" class="chip-note"></div>
+        <label for="whatsapp-login">Número de WhatsApp</label>
+        <input id="whatsapp-login" type="text" inputmode="numeric" autocomplete="tel-national" placeholder="Solo los dígitos, sin el indicativo">
+        <div id="wpp-hint-login" class="ph-nota" aria-live="polite"></div>
 
-        <div class="btn-row" style="margin-top:14px;">
-          <button id="btn-login" class="btn-primary">Iniciar Sesión Dinámica</button>
-        </div>
+        <button id="btn-login" type="button" class="ph-btn ph-btn--marca">
+          <svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2.2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>
+          <span>Iniciar sesión dinámica</span>
+        </button>
 
-        <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
-        <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
+        <p class="ph-legal">Al usar este aplicativo aceptas voluntariamente el tratamiento de tus datos personales (Art. 5 Ley 1581 de 2012 y Decreto 1074 de 2015).</p>
       </div>
     </section>
 
-    <!-- VISTA SUITE -->
-    <section id="view-suite" class="view">
-      <div class="card narrow">
-        <div class="btn-row" style="margin-bottom:12px;">
-          <button id="btn-logout" class="danger">Cerrar Sesión</button>
+    <!-- ============ SERVICIOS ============ -->
+    <section id="view-suite" class="ph-vista" aria-labelledby="t-suite">
+      <div class="ph-cabeza">
+        <span class="ph-chip"><i></i>SESIÓN ACTIVA</span>
+        <h2 id="t-suite">¿Qué necesitas hoy?</h2>
+        <p class="ph-sub">Selecciona uno de los servicios.</p>
+      </div>
+
+      <div class="ph-servicios">
+        <button id="btn-go-predial" type="button" class="ph-servicio">
+          <span class="ph-servicio__ic"><svg viewBox="0 0 24 24"><path d="M14 3.2H7.4A2.2 2.2 0 0 0 5.2 5.4v13.2a2.2 2.2 0 0 0 2.2 2.2h9.2a2.2 2.2 0 0 0 2.2-2.2V8.2z"/><path d="M14 3.2v5h4.8"/><path d="M8.6 12.6h6.8M8.6 16h4.4"/></svg></span>
+          <span class="ph-servicio__txt"><b>Solicitud impuesto predial</b><span>Pide tu recibo y te llega por WhatsApp.</span></span>
+          <svg class="ph-servicio__ir" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        </button>
+
+        <button id="btn-go-pse" type="button" class="ph-servicio">
+          <span class="ph-servicio__ic ph-servicio__ic--pse"><svg viewBox="0 0 24 24"><rect x="2.8" y="5.4" width="18.4" height="13.2" rx="2.4"/><path d="M2.8 9.6h18.4"/><path d="M6.4 14.6h4"/></svg></span>
+          <span class="ph-servicio__txt"><b>Pago PSE impuesto predial</b><span>Paga en línea desde tu banco.</span></span>
+          <svg class="ph-servicio__ir" viewBox="0 0 24 24"><path d="M14.2 4.2h5.6v5.6"/><path d="M19.8 4.2L11 13"/><path d="M18 14.4v4.2a1.8 1.8 0 0 1-1.8 1.8H5.4a1.8 1.8 0 0 1-1.8-1.8V7.8A1.8 1.8 0 0 1 5.4 6h4.2"/></svg>
+        </button>
+
+        <div class="ph-servicio ph-servicio--pronto" aria-disabled="true">
+          <span class="ph-servicio__ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3.4 2"/></svg></span>
+          <span class="ph-servicio__txt"><b>Próximamente más servicios</b><span>Estamos sumando trámites de Hacienda.</span></span>
+        </div>
+      </div>
+
+      <button id="btn-logout" type="button" class="ph-btn ph-btn--peligro">
+        <svg viewBox="0 0 24 24"><path d="M9.4 20.2H6a1.8 1.8 0 0 1-1.8-1.8V5.6A1.8 1.8 0 0 1 6 3.8h3.4"/><path d="M15.6 16.4L20 12l-4.4-4.4"/><path d="M20 12H9.4"/></svg>
+        <span>Cerrar sesión</span>
+      </button>
+    </section>
+
+    <!-- ============ SOLICITUD PREDIAL ============ -->
+    <section id="view-predial" class="ph-vista" aria-labelledby="t-predial">
+      <div class="ph-cabeza">
+        <span class="ph-chip"><i></i>IMPUESTO PREDIAL</span>
+        <h2 id="t-predial">Solicitud del recibo</h2>
+        <p class="ph-sub">Ten a mano un recibo de referencia para ingresar los datos correctos.</p>
+      </div>
+
+      <div class="ph-card ph-card--form">
+        <div class="ph-campo">
+          <label for="documento">Documento o NIT</label>
+          <span class="ph-ayuda">El <b>documento o NIT del propietario</b>.</span>
+          <input id="documento" type="text" inputmode="numeric" placeholder="Sin puntos ni guiones">
         </div>
 
-        <h2 style="color:var(--primary); font-weight:1000;">SUITE SECRETARÍA DE HACIENDA</h2>
-        <p class="helper">Selecciona uno de los servicios</p>
-
-        <div class="btn-row" style="margin-top:14px;">
-          <button id="btn-go-predial" class="btn-primary">SOLICITUD IMPUESTO PREDIAL</button>
+        <div class="ph-campo">
+          <label for="nombre">Nombre del propietario o razón social</label>
+          <span class="ph-ayuda">Tal como aparece en el recibo.</span>
+          <input id="nombre" type="text" autocomplete="name" placeholder="El nombre que está en el recibo">
         </div>
 
-        <div class="btn-row" style="margin-top:10px;">
-  <button id="btn-go-pse" class="btn-primary">💳 PAGO PSE IMPUESTO PREDIAL</button>
-</div>
-
-         <div class="muted">
-          Proximamente más servicios
+        <div class="ph-campo ph-campo--ancho">
+          <label for="barrio">Ubicación del predio</label>
+          <span class="ph-ayuda">El <b>barrio, vereda o conjunto</b> donde se ubica el predio.</span>
+          <select id="barrio">
+    <option value="" disabled selected>Selecciona la ubicación</option>
+    <option value="ACAPULCO I">ACAPULCO I</option>
+    <option value="ACAPULCO II">ACAPULCO II</option>
+    <option value="AGUAMARINA">AGUAMARINA</option>
+    <option value="ALCALA I">ALCALA I</option>
+    <option value="ALFONSO LOPEZ">ALFONSO LOPEZ</option>
+    <option value="ALTAGRACIA I">ALTAGRACIA I</option>
+    <option value="ALTAGRACIA II">ALTAGRACIA II</option>
+    <option value="ALTAGRACIA IV">ALTAGRACIA IV</option>
+    <option value="APROVITEF">APROVITEF</option>
+    <option value="ARAGON I">ARAGON I</option>
+    <option value="ARAGON II">ARAGON II</option>
+    <option value="ARAGON III">ARAGON III</option>
+    <option value="ARAGON IV">ARAGON IV</option>
+    <option value="ARBOLEDA I">ARBOLEDA I</option>
+    <option value="ARBOLEDA II">ARBOLEDA II</option>
+    <option value="BALCONES DE ALEJANDRIA">BALCONES DE ALEJANDRIA</option>
+    <option value="BILBAO">BILBAO</option>
+    <option value="CALA I">CALA I</option>
+    <option value="CANALES">CANALES</option>
+    <option value="CANCUN">CANCUN</option>
+    <option value="CAMALA">CAMALA</option>
+    <option value="CASA DEL SOL I">CASA DEL SOL I</option>
+    <option value="CASA DEL SOL II">CASA DEL SOL II</option>
+    <option value="CENTRO">CENTRO</option>
+    <option value="COLEGIO I">COLEGIO I</option>
+    <option value="COLEGIO II">COLEGIO II</option>
+    <option value="COLEGIO III">COLEGIO III</option>
+    <option value="DUBAI">DUBAI</option>
+    <option value="EL JORDAN">EL JORDAN</option>
+    <option value="GAITAN">GAITAN</option>
+    <option value="HANGARES">HANGARES</option>
+    <option value="BRISAS DEL CARMEN">INVASION BRISAS DEL CARMEN</option>
+    <option value="VILLA MAGDALENA">INVASION VILLA MAGDALENA</option>
+    <option value="VILLA MARIANA">INVASION VILLA MARIANA</option>
+    <option value="IQUEIMA">IQUEIMA</option>
+    <option value="JARDINES DE BABILONIA">JARDINES DE BABILONIA</option>
+    <option value="LA CAPILLA">LA CAPILLA</option>
+    <option value="LA CEIBA">LA CEIBA</option>
+    <option value="LA ESPERANZA">LA ESPERANZA</option>
+    <option value="LA PAZ">LA PAZ</option>
+    <option value="LA UNION">LA UNION</option>
+    <option value="LAS ROSAS">LAS ROSAS</option>
+    <option value="LAS VILLAS">LAS VILLAS</option>
+    <option value="LIBERTADOR">LIBERTADOR</option>
+    <option value="LLERAS">LLERAS</option>
+    <option value="LOS MANGOS I">LOS MANGOS I</option>
+    <option value="LOS MANGOS II">LOS MANGOS II</option>
+    <option value="LOS MANGOS III">LOS MANGOS III</option>
+    <option value="LOS MANGOS IV">LOS MANGOS IV</option>
+    <option value="LOS MANGOS V">LOS MANGOS V</option>
+    <option value="LOS MANGOS VI">LOS MANGOS VI</option>
+    <option value="LOS MANGOS VII">LOS MANGOS VII</option>
+    <option value="LOS PIJAOS">LOS PIJAOS</option>
+    <option value="MINUTO DE DIOS">MINUTO DE DIOS</option>
+    <option value="MIRADOR DE LA ESPERANZA">MIRADOR DE LA ESPERANZA</option>
+    <option value="MIRADOR DEL SOL">MIRADOR DEL SOL</option>
+    <option value="MONACO">MONACO</option>
+    <option value="OBRERO">OBRERO</option>
+    <option value="OBRERO DELIRIO">OBRERO DELIRIO</option>
+    <option value="ORQUIDEAS I">ORQUIDEAS I</option>
+    <option value="ORQUIDEAS II">ORQUIDEAS II</option>
+    <option value="ORQUIDEAS REAL I">ORQUIDEAS REAL I</option>
+    <option value="ORQUIDEAS REAL II">ORQUIDEAS REAL II</option>
+    <option value="ORQUIDEAS REAL III">ORQUIDEAS REAL III</option>
+    <option value="ORQUIDEAS REAL IV">ORQUIDEAS REAL IV</option>
+    <option value="PARADERO I">PARADERO I</option>
+    <option value="PARADERO II">PARADERO II</option>
+    <option value="PARAISO">PARAISO</option>
+    <option value="PAKISTAN I">PAKISTAN I</option>
+    <option value="PAKISTAN II">PAKISTAN II</option>
+    <option value="PAKISTAN III">PAKISTAN III</option>
+    <option value="PALO VERDE">PALO VERDE</option>
+    <option value="PARQUES DE ALEJANDRIA I">PARQUES DE ALEJANDRIA I</option>
+    <option value="PARQUES DE ALEJANDRIA II">PARQUES DE ALEJANDRIA II</option>
+    <option value="PARQUES DE ALEJANDRIA III">PARQUES DE ALEJANDRIA III</option>
+    <option value="PARQUES DE ALEJANDRIA IV">PARQUES DE ALEJANDRIA IV</option>
+    <option value="PARQUES DE PAKISTAN I">PARQUES DE PAKISTAN I</option>
+    <option value="PARQUES DE PAKISTAN II">PARQUES DE PAKISTAN II</option>
+    <option value="PARQUES DE PAKISTAN III">PARQUES DE PAKISTAN III</option>
+    <option value="PARQUES DE PAKISTAN IV">PARQUES DE PAKISTAN IV</option>
+    <option value="PARQUES DE PAKISTAN V">PARQUES DE PAKISTAN V</option>
+    <option value="PORTAL DEL RUBY">PORTAL DEL RUBY</option>
+    <option value="PRADERAS DE PALMA REAL">PRADERAS DE PALMA REAL</option>
+    <option value="PRADOS DE SAN REMO">PRADOS DE SAN REMO</option>
+    <option value="PUERTA BLANCA">PUERTA BLANCA</option>
+    <option value="PUERTO BAHIA I">PUERTO BAHIA I</option>
+    <option value="PUERTO BAHIA II">PUERTO BAHIA II</option>
+    <option value="PUERTO DOMINGO">PUERTO DOMINGO</option>
+    <option value="PUERTO MEDITERRANEO">PUERTO MEDITERRANEO</option>
+    <option value="QUINTAS DE SAN ESTEBAN">QUINTAS DE SAN ESTEBAN</option>
+    <option value="QUINTAS DE SAN FRANCISCO">QUINTAS DE SAN FRANCISCO</option>
+    <option value="QUINTAS DEL DIVINO NIÑO">QUINTAS DEL DIVINO NIÑO</option>
+    <option value="QUINTAS FERROVIARIAS">QUINTAS FERROVIARIAS</option>
+    <option value="RIVERAS DEL MAGDALENA">RIVERAS DEL MAGDALENA</option>
+    <option value="SAN ANDRES">SAN ANDRES</option>
+    <option value="SAN FELIPE DE BARAJAS">SAN FELIPE DE BARAJAS</option>
+    <option value="SAN FRANCISCO">SAN FRANCISCO</option>
+    <option value="SAN LUIS">SAN LUIS</option>
+    <option value="SANTA ANA">SANTA ANA</option>
+    <option value="SANTA MARTHA">SANTA MARTHA</option>
+    <option value="SANTA MONICA I">SANTA MONICA I</option>
+    <option value="SANTA MONICA II">SANTA MONICA II</option>
+    <option value="SINAI">SINAI</option>
+    <option value="SOL Y BRISA">SOL Y BRISA</option>
+    <option value="TARQUI">TARQUI</option>
+    <option value="TAYRONA">TAYRONA</option>
+    <option value="TERRAZAS DE ALEJANDRIA">TERRAZAS DE ALEJANDRIA</option>
+    <option value="TOPACIO">TOPACIO</option>
+    <option value="TRIANA">TRIANA</option>
+    <option value="URBANIZACION ARRAYANES">URBANIZACION ARRAYANES</option>
+    <option value="URBANIZACION EL PALMAR">URBANIZACION EL PALMAR</option>
+    <option value="URBANIZACION EL PORTAL">URBANIZACION EL PORTAL</option>
+    <option value="URBANIZACION EL RUBY">URBANIZACION EL RUBY</option>
+    <option value="URBANIZACION LOS ALMENDROS">URBANIZACION LOS ALMENDROS</option>
+    <option value="URBANIZACION VILLA LUCIA">URBANIZACION VILLA LUCIA</option>
+    <option value="URBANIZACION VILLA MAGDALENA I">URBANIZACION VILLA MAGDALENA I</option>
+    <option value="URBANIZACION VILLA MAGDALENA II">URBANIZACION VILLA MAGDALENA II</option>
+    <option value="URBANIZACION VILLA MAGDALENA III">URBANIZACION VILLA MAGDALENA III</option>
+    <option value="URBANIZACION VILLA MARIANA">URBANIZACION VILLA MARIANA</option>
+    <option value="VALLESUE">VALLESUE</option>
+    <option value="VENECIA I">VENECIA I</option>
+    <option value="VENECIA II">VENECIA II</option>
+    <option value="VENECIA III">VENECIA III</option>
+    <option value="VENECIA IV">VENECIA IV</option>
+    <option value="VILLA DE LAS PALMAS">VILLA DE LAS PALMAS</option>
+    <option value="VILLA DEL RIO I">VILLA DEL RIO I</option>
+    <option value="VILLA DEL RIO II">VILLA DEL RIO II</option>
+    <option value="VILLA DEL SOL">VILLA DEL SOL</option>
+    <option value="VILLA ESPERANZA">VILLA ESPERANZA</option>
+    <option value="VILLA LAS PALMAS">VILLA LAS PALMAS</option>
+    <option value="VILLA MEDINA">VILLA MEDINA</option>
+    <option value="VILLAS DEL MEDITERANEO">VILLAS DEL MEDITERANEO</option>
+          </select>
         </div>
 
-        <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
-        <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
+        <div class="ph-campo ph-campo--ancho">
+          <label for="codigo">Código catastral <em>(opcional)</em></label>
+          <span class="ph-ayuda">El que aparece en el recibo. <b>Si no lo recuerdas, déjalo vacío.</b></span>
+          <input id="codigo" type="text" inputmode="numeric" placeholder="Entre 14 y 30 dígitos">
+        </div>
+
+        <div class="ph-campo ph-campo--ancho">
+          <label for="solicitud">Amplía la solicitud <em>(opcional)</em></label>
+          <span class="ph-ayuda">Detalles u otros recibos que necesites <b>(máximo 5 recibos por solicitud)</b>.</span>
+          <textarea id="solicitud" rows="4" placeholder="Si no tienes detalles u otra solicitud, déjalo vacío."></textarea>
+        </div>
+
+        <div class="ph-acciones ph-campo--ancho">
+          <button id="btn-predial-cancelar" type="button" class="ph-btn ph-btn--peligro">
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Cancelar</span>
+          </button>
+          <button id="btn-predial-guardar" type="button" class="ph-btn ph-btn--marca">
+            <svg viewBox="0 0 24 24"><path d="M20.6 3.4L10.4 13.6"/><path d="M20.6 3.4l-6.4 17.2-3.8-7-7-3.8z"/></svg><span>Enviar solicitud</span>
+          </button>
+        </div>
       </div>
     </section>
 
-    <!-- VISTA SOLICITUD PREDIAL -->
-    <section id="view-predial" class="view">
-      <div class="card narrow">
-        <h2 style="color:var(--primary);">SOLICITUD IMPUESTO PREDIAL</h2>
-        <p class="helper">
-          Sigue correctamente las instrucciones para realizar la solicitud del Recibo de Impuesto Predial.<br><br>
-          Toma un recibo de referencia para ingresar datos acertados.
-        </p>
-
-        <label for="documento">Documento o NIT</label>
-        <div class="muted">Ingresa el <b>DOCUMENTO o NIT del propietario</b></div>
-        <input id="documento" type="text" inputmode="numeric" placeholder="Sin punto ni guiones" />
-
-        <label for="nombre">Nombre del Propietario o razón social</label>
-        <div class="muted">Ingresa el <b>NOMBRE del propietario</b></div>
-        <input id="nombre" type="text" placeholder="El nombre que está en el recibo" />
-
-        <label for="barrio">Ubicación del Predio</label>
-        <div class="muted">Selecciona el <b>Barrio, Vereda o Conjunto</b> donde se ubica el predio</div>
-        <select id="barrio">
-          <option value="" disabled selected>Selecciona la ubicación</option>
-          <option value="ACAPULCO I">ACAPULCO I</option>
-          <option value="ACAPULCO II">ACAPULCO II</option>
-          <option value="AGUAMARINA">AGUAMARINA</option>
-          <option value="ALCALA I">ALCALA I</option>
-          <option value="ALFONSO LOPEZ">ALFONSO LOPEZ</option>
-          <option value="ALTAGRACIA I">ALTAGRACIA I</option>
-          <option value="ALTAGRACIA II">ALTAGRACIA II</option>
-          <option value="ALTAGRACIA IV">ALTAGRACIA IV</option>
-          <option value="APROVITEF">APROVITEF</option>
-          <option value="ARAGON I">ARAGON I</option>
-          <option value="ARAGON II">ARAGON II</option>
-          <option value="ARAGON III">ARAGON III</option>
-          <option value="ARAGON IV">ARAGON IV</option>
-          <option value="ARBOLEDA I">ARBOLEDA I</option>
-          <option value="ARBOLEDA II">ARBOLEDA II</option>
-          <option value="BALCONES DE ALEJANDRIA">BALCONES DE ALEJANDRIA</option>
-          <option value="BILBAO">BILBAO</option>
-          <option value="CALA I">CALA I</option>
-          <option value="CANALES">CANALES</option>
-          <option value="CANCUN">CANCUN</option>
-          <option value="CAMALA">CAMALA</option>
-          <option value="CASA DEL SOL I">CASA DEL SOL I</option>
-          <option value="CASA DEL SOL II">CASA DEL SOL II</option>
-          <option value="CENTRO">CENTRO</option>
-          <option value="COLEGIO I">COLEGIO I</option>
-          <option value="COLEGIO II">COLEGIO II</option>
-          <option value="COLEGIO III">COLEGIO III</option>
-          <option value="DUBAI">DUBAI</option>
-          <option value="EL JORDAN">EL JORDAN</option>
-          <option value="GAITAN">GAITAN</option>
-          <option value="HANGARES">HANGARES</option>
-          <option value="BRISAS DEL CARMEN">INVASION BRISAS DEL CARMEN</option>
-          <option value="VILLA MAGDALENA">INVASION VILLA MAGDALENA</option>
-          <option value="VILLA MARIANA">INVASION VILLA MARIANA</option>
-          <option value="IQUEIMA">IQUEIMA</option>
-          <option value="JARDINES DE BABILONIA">JARDINES DE BABILONIA</option>
-          <option value="LA CAPILLA">LA CAPILLA</option>
-          <option value="LA CEIBA">LA CEIBA</option>
-          <option value="LA ESPERANZA">LA ESPERANZA</option>
-          <option value="LA PAZ">LA PAZ</option>
-          <option value="LA UNION">LA UNION</option>
-          <option value="LAS ROSAS">LAS ROSAS</option>
-          <option value="LAS VILLAS">LAS VILLAS</option>
-          <option value="LIBERTADOR">LIBERTADOR</option>
-          <option value="LLERAS">LLERAS</option>
-          <option value="LOS MANGOS I">LOS MANGOS I</option>
-          <option value="LOS MANGOS II">LOS MANGOS II</option>
-          <option value="LOS MANGOS III">LOS MANGOS III</option>
-          <option value="LOS MANGOS IV">LOS MANGOS IV</option>
-          <option value="LOS MANGOS V">LOS MANGOS V</option>
-          <option value="LOS MANGOS VI">LOS MANGOS VI</option>
-          <option value="LOS MANGOS VII">LOS MANGOS VII</option>
-          <option value="LOS PIJAOS">LOS PIJAOS</option>
-          <option value="MINUTO DE DIOS">MINUTO DE DIOS</option>
-          <option value="MIRADOR DE LA ESPERANZA">MIRADOR DE LA ESPERANZA</option>
-          <option value="MIRADOR DEL SOL">MIRADOR DEL SOL</option>
-          <option value="MONACO">MONACO</option>
-          <option value="OBRERO">OBRERO</option>
-          <option value="OBRERO DELIRIO">OBRERO DELIRIO</option>
-          <option value="ORQUIDEAS I">ORQUIDEAS I</option>
-          <option value="ORQUIDEAS II">ORQUIDEAS II</option>
-          <option value="ORQUIDEAS REAL I">ORQUIDEAS REAL I</option>
-          <option value="ORQUIDEAS REAL II">ORQUIDEAS REAL II</option>
-          <option value="ORQUIDEAS REAL III">ORQUIDEAS REAL III</option>
-          <option value="ORQUIDEAS REAL IV">ORQUIDEAS REAL IV</option>
-          <option value="PARADERO I">PARADERO I</option>
-          <option value="PARADERO II">PARADERO II</option>
-          <option value="PARAISO">PARAISO</option>
-          <option value="PAKISTAN I">PAKISTAN I</option>
-          <option value="PAKISTAN II">PAKISTAN II</option>
-          <option value="PAKISTAN III">PAKISTAN III</option>
-          <option value="PALO VERDE">PALO VERDE</option>
-          <option value="PARQUES DE ALEJANDRIA I">PARQUES DE ALEJANDRIA I</option>
-          <option value="PARQUES DE ALEJANDRIA II">PARQUES DE ALEJANDRIA II</option>
-          <option value="PARQUES DE ALEJANDRIA III">PARQUES DE ALEJANDRIA III</option>
-          <option value="PARQUES DE ALEJANDRIA IV">PARQUES DE ALEJANDRIA IV</option>
-          <option value="PARQUES DE PAKISTAN I">PARQUES DE PAKISTAN I</option>
-          <option value="PARQUES DE PAKISTAN II">PARQUES DE PAKISTAN II</option>
-          <option value="PARQUES DE PAKISTAN III">PARQUES DE PAKISTAN III</option>
-          <option value="PARQUES DE PAKISTAN IV">PARQUES DE PAKISTAN IV</option>
-          <option value="PARQUES DE PAKISTAN V">PARQUES DE PAKISTAN V</option>
-          <option value="PORTAL DEL RUBY">PORTAL DEL RUBY</option>
-          <option value="PRADERAS DE PALMA REAL">PRADERAS DE PALMA REAL</option>
-          <option value="PRADOS DE SAN REMO">PRADOS DE SAN REMO</option>
-          <option value="PUERTA BLANCA">PUERTA BLANCA</option>
-          <option value="PUERTO BAHIA I">PUERTO BAHIA I</option>
-          <option value="PUERTO BAHIA II">PUERTO BAHIA II</option>
-          <option value="PUERTO DOMINGO">PUERTO DOMINGO</option>
-          <option value="PUERTO MEDITERRANEO">PUERTO MEDITERRANEO</option>
-          <option value="QUINTAS DE SAN ESTEBAN">QUINTAS DE SAN ESTEBAN</option>
-          <option value="QUINTAS DE SAN FRANCISCO">QUINTAS DE SAN FRANCISCO</option>
-          <option value="QUINTAS DEL DIVINO NIÑO">QUINTAS DEL DIVINO NIÑO</option>
-          <option value="QUINTAS FERROVIARIAS">QUINTAS FERROVIARIAS</option>
-          <option value="RIVERAS DEL MAGDALENA">RIVERAS DEL MAGDALENA</option>
-          <option value="SAN ANDRES">SAN ANDRES</option>
-          <option value="SAN FELIPE DE BARAJAS">SAN FELIPE DE BARAJAS</option>
-          <option value="SAN FRANCISCO">SAN FRANCISCO</option>
-          <option value="SAN LUIS">SAN LUIS</option>
-          <option value="SANTA ANA">SANTA ANA</option>
-          <option value="SANTA MARTHA">SANTA MARTHA</option>
-          <option value="SANTA MONICA I">SANTA MONICA I</option>
-          <option value="SANTA MONICA II">SANTA MONICA II</option>
-          <option value="SINAI">SINAI</option>
-          <option value="SOL Y BRISA">SOL Y BRISA</option>
-          <option value="TARQUI">TARQUI</option>
-          <option value="TAYRONA">TAYRONA</option>
-          <option value="TERRAZAS DE ALEJANDRIA">TERRAZAS DE ALEJANDRIA</option>
-          <option value="TOPACIO">TOPACIO</option>
-          <option value="TRIANA">TRIANA</option>
-          <option value="URBANIZACION ARRAYANES">URBANIZACION ARRAYANES</option>
-          <option value="URBANIZACION EL PALMAR">URBANIZACION EL PALMAR</option>
-          <option value="URBANIZACION EL PORTAL">URBANIZACION EL PORTAL</option>
-          <option value="URBANIZACION EL RUBY">URBANIZACION EL RUBY</option>
-          <option value="URBANIZACION LOS ALMENDROS">URBANIZACION LOS ALMENDROS</option>
-          <option value="URBANIZACION VILLA LUCIA">URBANIZACION VILLA LUCIA</option>
-          <option value="URBANIZACION VILLA MAGDALENA I">URBANIZACION VILLA MAGDALENA I</option>
-          <option value="URBANIZACION VILLA MAGDALENA II">URBANIZACION VILLA MAGDALENA II</option>
-          <option value="URBANIZACION VILLA MAGDALENA III">URBANIZACION VILLA MAGDALENA III</option>
-          <option value="URBANIZACION VILLA MARIANA">URBANIZACION VILLA MARIANA</option>
-          <option value="VALLESUE">VALLESUE</option>
-          <option value="VENECIA I">VENECIA I</option>
-          <option value="VENECIA II">VENECIA II</option>
-          <option value="VENECIA III">VENECIA III</option>
-          <option value="VENECIA IV">VENECIA IV</option>
-          <option value="VILLA DE LAS PALMAS">VILLA DE LAS PALMAS</option>
-          <option value="VILLA DEL RIO I">VILLA DEL RIO I</option>
-          <option value="VILLA DEL RIO II">VILLA DEL RIO II</option>
-          <option value="VILLA DEL SOL">VILLA DEL SOL</option>
-          <option value="VILLA ESPERANZA">VILLA ESPERANZA</option>
-          <option value="VILLA LAS PALMAS">VILLA LAS PALMAS</option>
-          <option value="VILLA MEDINA">VILLA MEDINA</option>
-          <option value="VILLAS DEL MEDITERANEO">VILLAS DEL MEDITERANEO</option>
-        </select>
-
-        <label for="codigo">Código Catastral</label>
-        <div class="muted">Ingresa el código catastral que aparece en el recibo. <b>Si no lo recuerdas, NO diligencies este campo.</b></div>
-        <input id="codigo" type="text" inputmode="numeric" placeholder="Entre 14 y 30 dígitos" />
-
-        <label for="solicitud">Amplía la Solicitud (opcional)</label>
-        <div class="muted">Amplía detalles o si tienes más recibos a solicitar <b>(Máxio 5 recibos por solicitud).</b></div>
-        <textarea id="solicitud" rows="5" placeholder="Si no tienes detalles u otra solicitud, NO diligencies este campo."></textarea>
-
-        <div class="btn-row" style="margin-top:14px;">
-          <button id="btn-predial-guardar" class="btn-primary">Guardar</button>
-          <button id="btn-predial-cancelar" class="danger">Cancelar</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- VISTA FIN -->
-    <section id="view-fin" class="view">
-      <div class="card narrow">
-        <h2 id="fin-title" style="color:var(--primary);"></h2>
-        <p class="helper">Revisa tu WhatsApp para conocer el tiempo de respuesta.</p>
-        <p class="center muted" style="font-weight:1000;">Hasta Pronto</p>
-
-        <div class="btn-row" style="margin-top:14px;">
-          <button id="btn-fin-volver" class="btn-primary">IR A WHATSAPP</button>
-        </div>
-
-        <img class="brand" alt="Banner" src="https://res.cloudinary.com/dqqeavica/image/upload/v1766347982/banner_wbfbf7.gif" />
-        <p class="center muted">Copyright © <b>GOBIERNO DIGITAL</b></p>
-      </div>
-    </section>
-    
-  </div>
-
-<script>
-/* ================== CONFIG ================== */
-const API_BASE = 'https://script.google.com/macros/s/AKfycbz-h1rD7PxKd9Vd1PUnFFIujQa-Z-9XEBmNWGKnNdGXDQFPGQK1fNaNCiKJzDdb1apDZw/exec';
-
-/* ================== SONIDOS ================== */
-const SOUNDS = {
-  question: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_fail_ls2aif.mp3',
-  info: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Default_notification_pkp4wr.mp3',
-  success: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Pay_success_t5aawh.mp3',
-  error: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Low_battery_d5qua1.mp3',
-  warning: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Low_battery_d5quaa1.mp3',
-  login: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Siri_star_g1owy4.mp3',
-  logout: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Siri_End_kelv02.mp3',
-  back: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011578/Keyboard_Enter_b9k2dc.mp3',
-  menu: 'https://res.cloudinary.com/dqqeavica/video/upload/v1759011577/Namedrop_Popup_ale2zy.mp3',
-  wpp_inicio: 'https://res.cloudinary.com/dqqeavica/video/upload/v1774314614/ir_whatsapp_inicio_ptip76.mp3',
-  wpp_alerta: 'https://res.cloudinary.com/dqqeavica/video/upload/v1774314614/ir_whatsapp_alerta_b5mkon.mp3'
-};
-function playSoundOnce(url){
-  try{ const a=new Audio(url); a.preload='auto'; a.play().catch(()=>{}); }catch(e){}
-}
-
-  let __autoAudio = null;
-
-function stopAutoAudio_(){
-  try{
-    if(__autoAudio){
-      __autoAudio.pause();
-      __autoAudio.currentTime = 0;
-    }
-  }catch(_){}
-}
-
-async function playAutoAudio_(url){
-  try{
-    stopAutoAudio_();
-    if(!__autoAudio){
-      __autoAudio = new Audio();
-      __autoAudio.preload = 'auto';
-    }
-    __autoAudio.src = url;
-    await __autoAudio.play();
-  }catch(_){
-    // si el navegador bloquea autoplay, no rompemos nada
-  }
-}
-
-/* ✅ Todas las alertas con sonido */
-if (window.Swal && typeof Swal.fire === 'function'){
-  const __fire = Swal.fire.bind(Swal);
-  Swal.fire = function(options = {}, ...rest){
-    try{
-      const icon = options.icon || options.type;
-      if (icon && SOUNDS[icon]) playSoundOnce(SOUNDS[icon]);
-    }catch(_){}
-    return __fire(options, ...rest);
-  };
-}
-
-/* ================== LOADER ================== */
-const loader = document.getElementById('loader');
-let loadingCount = 0, loaderTimer = null;
-function startLoading(){
-  loadingCount++;
-  if (loadingCount === 1){
-    loaderTimer = setTimeout(()=>{ loader.classList.remove('hidden'); loaderTimer = null; }, 120);
-  }
-}
-function stopLoading(){
-  if (loadingCount === 0) return;
-  loadingCount--;
-  if (loadingCount === 0){
-    if (loaderTimer){ clearTimeout(loaderTimer); loaderTimer = null; }
-    loader.classList.add('hidden');
-  }
-}
-
-/* ================== UTIL ================== */
-function showView(id){
-  for(const el of document.querySelectorAll('.view')) el.classList.remove('active');
-  document.getElementById(id)?.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
-function bindNumericSanitizer(id, maxLen){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.addEventListener('input', ()=>{
-    const raw = onlyDigits(el.value);
-    el.value = maxLen ? raw.slice(0, maxLen) : raw;
-  });
-}
-function validateTwoWords_(s){
-  const parts = String(s||'').trim().split(/\s+/).filter(Boolean);
-  return parts.length >= 2;
-}
-function escapeHtml_(s){
-  return String(s||'')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;');
-}
-
-  function openWhatsAppNoBlock_(url){
-  // Debe ejecutarse SÍ o SÍ dentro de un gesto de usuario (click)
-  try{
-    // _blank abre pestaña nueva; noopener por seguridad
-    const w = window.open(url, '_blank', 'noopener,noreferrer');
-    // Si el navegador devuelve null, significa que lo bloqueó.
-    // No hacemos Swal aquí porque ya estarás abriendo WhatsApp; dejamos silencioso.
-    return !!w;
-  }catch(_){
-    return false;
-  }
-}
-
-function resetToLogin_(){
-  // reset estado
-  session.whatsappFull = '';
-  predialDraft = null;
-
-  // limpiar inputs login
-  try{ resetLoginWpp_(); }catch(_){}
-
-  // opcional: limpiar formulario predial por si quedó algo
-  try{ resetPredialForm_(); }catch(_){}
-
-  // volver a login
-  showView('view-login');
-}
-
-function goWhatsappAfterReset_(url){
-  resetToLogin_();
-  window.open(url, '_blank');
-}
-
-/* ================== STATE ================== */
-let session = { whatsappFull: '' };
-let predialDraft = null;
-
-/* ================== API ================== */
-async function apiPostToGs_(body){
-  startLoading();
-  try{
-    const r = await fetch(API_BASE, {
-      method:'POST',
-      headers: { 'Content-Type':'text/plain;charset=utf-8' },
-      body: JSON.stringify(body)
-    });
-    return await r.json();
-  } finally { stopLoading(); }
-}
-async function apiGetFromGs_(params){
-  startLoading();
-  try{
-    const qs = new URLSearchParams(params || {}).toString();
-    const url = API_BASE + (qs ? ('?' + qs) : '');
-    const r = await fetch(url, { method:'GET' });
-    return await r.json();
-  } finally { stopLoading(); }
-}
-
-/* ================== LOGIN (WhatsApp + CLAVE) ================== */
-const COUNTRIES = [
-  { name:'Colombia 🇨🇴', code:'57', nationalLen:10 },
-  { name:'Estados Unidos 🇺🇸', code:'1', nationalLen:10 },
-  { name:'España 🇪🇸', code:'34', nationalLen:9 },
-  { name:'Portugal 🇵🇹', code:'351', nationalLen:9 },
-  { name:'Argentina 🇦🇷', code:'54', nationalLen:10 },
-  { name:'Bolivia 🇧🇴', code:'591', nationalLen:8 },
-  { name:'Brasil 🇧🇷', code:'55', nationalLen:11 },
-  { name:'Chile 🇨🇱', code:'56', nationalLen:9 },
-  { name:'Costa Rica 🇨🇷', code:'506', nationalLen:8 },
-  { name:'Cuba 🇨🇺', code:'53', nationalLen:8 },
-  { name:'República Dominicana 🇩🇴', code:'1', nationalLen:10 },
-  { name:'Ecuador 🇪🇨', code:'593', nationalLen:9 },
-  { name:'El Salvador 🇸🇻', code:'503', nationalLen:8 },
-  { name:'Guatemala 🇬🇹', code:'502', nationalLen:8 },
-  { name:'Honduras 🇭🇳', code:'504', nationalLen:8 },
-  { name:'México 🇲🇽', code:'521', nationalLen:10 },
-  { name:'Nicaragua 🇳🇮', code:'505', nationalLen:8 },
-  { name:'Panamá 🇵🇦', code:'507', nationalLen:8 },
-  { name:'Paraguay 🇵🇾', code:'595', nationalLen:9 },
-  { name:'Perú 🇵🇪', code:'51', nationalLen:9 },
-  { name:'Uruguay 🇺🇾', code:'598', nationalLen:8 },
-  { name:'Venezuela 🇻🇪', code:'58', nationalLen:10 },
-  { name:'Italia 🇮🇹', code:'39', nationalLen:10 },
-  { name:'Reino Unido 🇬🇧', code:'44', nationalLen:10 },
-  { name:'Alemania 🇩🇪', code:'49', nationalLen:11 },
-];
-
-function initPaisLoginChoicesOnce_(){
-  const sel = document.getElementById('pais-login');
-  if(!sel) return;
-
-  sel.innerHTML = '';
-  sel.appendChild(new Option('Selecciona tu país', '', true, true));
-  sel.options[0].disabled = true;
-
-  for(const c of COUNTRIES){
-    // ✅ Ahora se verá: "Colombia 🇨🇴 (57)"
-    sel.appendChild(new Option(`${c.name} (${c.code})`, c.code));
-  }
-
-  if(!choicesPaisLogin){
-    choicesPaisLogin = new Choices(sel, {
-      searchEnabled:true,
-      itemSelectText:'',
-      shouldSort:false
-    });
-  }else{
-    try{
-      choicesPaisLogin.clearStore();
-      choicesPaisLogin.setChoices(
-        COUNTRIES.map(c => ({ value: c.code, label: `${c.name} (${c.code})` })),
-        'value','label', true
-      );
-      choicesPaisLogin.setChoiceByValue('');
-    }catch(_){}
-  }
-}
-let choicesPaisLogin = null;
-
-function getCountryByCode_(code){
-  return COUNTRIES.find(c => c.code === String(code||''));
-}
-
-function setWppLoginUIForCountry_(country){
-  const pref = document.getElementById('prefijo-login');
-  const hint = document.getElementById('wpp-hint-login');
-  const wpp = document.getElementById('whatsapp-login');
-
-  pref.value = country ? country.code : '';
-  if(country){
-    hint.innerHTML =
-  `Indicativo <b>${country.code}</b> + número nacional de <b>${country.nationalLen}</b> dígitos.`;
-    wpp.value = onlyDigits(wpp.value).slice(0, country.nationalLen);
-    wpp.setAttribute('maxlength', String(country.nationalLen));
-  }else{
-    hint.textContent = '';
-    wpp.removeAttribute('maxlength');
-  }
-}
-
-function initPaisLoginChoicesOnce_(){
-  const sel = document.getElementById('pais-login');
-  if(!sel) return;
-
-  sel.innerHTML = '';
-  sel.appendChild(new Option('Selecciona tu país', '', true, true));
-  sel.options[0].disabled = true;
-
-  for(const c of COUNTRIES){
-    sel.appendChild(new Option(`${c.name} (${c.code})`, c.code));
-  }
-
-  if(!choicesPaisLogin){
-    choicesPaisLogin = new Choices(sel, {
-      searchEnabled:true,
-      itemSelectText:'',
-      shouldSort:false
-    });
-  }else{
-    try{
-      choicesPaisLogin.clearStore();
-      choicesPaisLogin.setChoices(
-        COUNTRIES.map(c => ({ value: c.code, label: `${c.name} (${c.code})` })),
-        'value','label', true
-      );
-      choicesPaisLogin.setChoiceByValue('');
-    }catch(_){}
-  }
-}
-
-function resetLoginWpp_(){
-  initPaisLoginChoicesOnce_();
-
-  try{
-    if(choicesPaisLogin){
-      choicesPaisLogin.removeActiveItems();
-      choicesPaisLogin.setChoiceByValue('');
-    }
-  }catch(_){
-    document.getElementById('pais-login').value = '';
-  }
-
-  document.getElementById('whatsapp-login').value = '';
-  setWppLoginUIForCountry_(null);
-}
-
-(function(){
-  const el = document.getElementById('whatsapp-login');
-  if(!el) return;
-
-  // PASTE: intercepta antes del maxlength → toma los últimos N dígitos
-  el.addEventListener('paste', (e)=>{
-    e.preventDefault();
-    const pasted = (e.clipboardData || window.clipboardData).getData('text');
-    const raw = onlyDigits(pasted);
-    const code = String(document.getElementById('pais-login')?.value || '');
-    const country = getCountryByCode_(code);
-    const maxLen = country ? country.nationalLen : 15;
-    el.value = raw.length > maxLen ? raw.slice(-maxLen) : raw;
-  });
-
-  // ESCRITURA NORMAL: recorta desde el inicio (comportamiento correcto)
-  el.addEventListener('input', ()=>{
-    const raw = onlyDigits(el.value);
-    const code = String(document.getElementById('pais-login')?.value || '');
-    const country = getCountryByCode_(code);
-    const maxLen = country ? country.nationalLen : 15;
-    el.value = raw.length > maxLen ? raw.slice(0, maxLen) : raw;
-  });
-})();
-
-document.getElementById('pais-login')?.addEventListener('change', ()=>{
-  const code = String(document.getElementById('pais-login').value || '');
-  const c = getCountryByCode_(code);
-  setWppLoginUIForCountry_(c);
-});
-
-// ✅ SOLO valida existencia en CLAVE (NO borra)
-async function checkClaveLogin_(whatsappFull){
-  return await apiGetFromGs_({ op:'check_clave', whatsapp: whatsappFull });
-}
-
-// ✅ consumir (borrar) en CLAVE (se usará al registrar)
-async function consumeClave_(whatsappFull){
-  return await apiGetFromGs_({ op:'consume_clave', whatsapp: whatsappFull });
-}
-
-document.getElementById('btn-login')?.addEventListener('click', async ()=>{
-  // ✅ Validación REAL: si no hay país seleccionado, el prefijo queda vacío
-  const prefijo = String(document.getElementById('prefijo-login')?.value || '').trim();
-  if (!prefijo) {
-    await Swal.fire({ icon:'info', title:'SELECCIONA TU PAIS' });
-    return;
-  }
-
-  // (tu código sigue igual)
-  const paisCode = String(document.getElementById('pais-login')?.value || '').trim();
-  const country = getCountryByCode_(paisCode);
-
-  // si quieres, puedes dejar esta validación como respaldo:
-  if(!country){
-    await Swal.fire({ icon:'info', title:'SELECCIONA TU PAIS' });
-    return;
-  }
-
-  const national = onlyDigits(document.getElementById('whatsapp-login').value || '');
-  if(national.length !== country.nationalLen){
-    await Swal.fire({
-      icon:'error',
-      title:'WhatsApp inválido',
-      text:`Para ${country.name} debes ingresar ${country.nationalLen} dígitos (sin indicativo).`
-    });
-    return;
-  }
-
-  const whatsappFull = country.code + national;
-
-  try{
-    const claveRes = await checkClaveLogin_(whatsappFull);
-
-    if(String(claveRes?.status||'').toLowerCase() !== 'success'){
-      throw new Error(claveRes?.message || 'No fue posible validar el acceso');
-    }
-
-    if(!claveRes?.exists){
-  const r = await Swal.fire({
-    icon:'info',
-    title:'Debes solicitar esta Suite desde nuestro WhatsApp Oficial',
-    text:'Toca el botón',
-    showCancelButton:true,
-    confirmButtonText:'Ir a Whatsapp',
-    cancelButtonText:'Cerrar',
-    didOpen: ()=>{
-      playAutoAudio_(SOUNDS.wpp_alerta);
-    }
-  });
-
-  if(r.isConfirmed){
-    playSoundOnce(SOUNDS.back);
-    goWhatsappAfterReset_('https://wa.link/07wrxo');
-  }
-  return;
-}
-
-    // ✅ existe => guardar en sesión y entrar a suite
-    session.whatsappFull = whatsappFull;
-    playSoundOnce(SOUNDS.login);
-    showView('view-suite');
-  }catch(e){
-    await Swal.fire({ icon:'error', title:'Error', text:String(e.message || e) });
-  }
-});
-
-/* ================== SUITE ================== */
-document.getElementById('btn-logout')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.logout);
-  resetToLogin_();
-});
-
-let choicesBarrio = null;
-function initBarrioChoices_(){
-  if(choicesBarrio) return;
-  const el = document.getElementById('barrio');
-  if(!el) return;
-  choicesBarrio = new Choices(el, { searchEnabled:true, itemSelectText:'', shouldSort:false });
-}
-
-document.getElementById('btn-go-predial')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-  initBarrioChoices_();
-  resetPredialForm_();
-  showView('view-predial');
-});
-
-  document.getElementById('btn-go-pse')?.addEventListener('click', () => {
-  playSoundOnce(SOUNDS.back);
-  resetToLogin_();
-  window.open('https://flandes.hassqlservice.com/ImpuestosEntidadOld.aspx', '_blank', 'noopener,noreferrer');
-});
-
-
-/* ================== PREDIAL ================== */
-bindNumericSanitizer('documento', 10);
-bindNumericSanitizer('codigo', 30);
-
-function resetPredialForm_(){
-  document.getElementById('documento').value = '';
-  document.getElementById('nombre').value = '';
-  document.getElementById('codigo').value = '';
-  document.getElementById('solicitud').value = '';
-  try{
-    if(choicesBarrio){
-      choicesBarrio.removeActiveItems();
-      choicesBarrio.setChoiceByValue('');
-    }else{
-      document.getElementById('barrio').value = '';
-    }
-  }catch(_){
-    document.getElementById('barrio').value = '';
-  }
-}
-
-document.getElementById('btn-predial-cancelar')?.addEventListener('click', ()=>{
-  playSoundOnce(SOUNDS.back);
-  resetToLogin_();
-});
-
-/* ✅ “Guardar” muestra resumen aquí mismo y confirma */
-document.getElementById('btn-predial-guardar')?.addEventListener('click', async ()=>{
-  if(!session.whatsappFull){
-    await Swal.fire({ icon:'warning', title:'Sesión inválida', text:'Debes iniciar sesión nuevamente.' });
-    playSoundOnce(SOUNDS.back);
-    resetToLogin_();
-    return;
-  }
-
-  const documento = onlyDigits(document.getElementById('documento').value || '');
-  const nombre = String(document.getElementById('nombre').value || '').trim();
-  const barrio = String(document.getElementById('barrio').value || '').trim();
-  const codigo = onlyDigits(String(document.getElementById('codigo').value || ''));
-  const solicitud = String(document.getElementById('solicitud').value || '').trim();
-
-  if(documento.length < 6 || documento.length > 10){
-    await Swal.fire({ icon:'warning', title:'Documento/NIT inválido', text:'Debe tener entre 6 y 10 dígitos.' });
-    return;
-  }
-  if(!validateTwoWords_(nombre)){
-    await Swal.fire({ icon:'warning', title:'Nombre inválido', text:'Debe contener mínimo 2 palabras.' });
-    return;
-  }
-  if(!barrio){
-    await Swal.fire({ icon:'warning', title:'Ubicación requerida', text:'Selecciona el Barrio / Conjunto.' });
-    return;
-  }
-  if(codigo && (codigo.length < 14 || codigo.length > 30)){
-    await Swal.fire({ icon:'error', title:'Código catastral inválido', text:'Debe tener entre 14 y 30 dígitos.' });
-    return;
-  }
-
-  predialDraft = { documento, nombre, barrio, codigo, solicitud, whatsappFull: session.whatsappFull };
-
-  const codigoTxt = predialDraft.codigo ? predialDraft.codigo : 'No Suministrado';
-  const solicitudTxt = predialDraft.solicitud ? predialDraft.solicitud : 'No Suministrado';
-
-  const resumenHtml = `
-    <div style="text-align:left">
-      <div style="margin-bottom:8px; font-weight:900;">
-        RESUMEN DE SOLICITUD <span style="color:var(--primary);">IMPUESTO PREDIAL</span>
-      </div>
-      <div><b>NOMBRE O RAZÓN SOCIAL:</b> <span style="color:#111;">${escapeHtml_(predialDraft.nombre)}</span></div>
-      <div><b>DOCUMENTO / NIT:</b> <span style="color:#111;">${escapeHtml_(predialDraft.documento)}</span></div>
-      <div><b>UBICACIÓN PREDIO:</b> <span style="color:#111;">${escapeHtml_(predialDraft.barrio)}</span></div>
-      <div><b>CÓDIGO CATASTRAL:</b> <span style="color:#111;">${escapeHtml_(codigoTxt)}</span></div>
-      <div><b>SOLICITUD:</b> <span style="color:#111;">${escapeHtml_(solicitudTxt)}</span></div>
-      <div style="margin-top:10px;color:#111;"><b>WHATSAPP:</b> <span style="color:#0b3b22;">${escapeHtml_(predialDraft.whatsappFull)}</span></div>
+    <!-- Firma institucional (la animación del repo, ya optimizada) -->
+    <div class="ph-placa">
+      <video class="ph-placa__video" src="img/banner.mp4" poster="img/banner-fijo.webp" muted playsinline loop preload="none" width="564" height="124" aria-label="Alcaldía de Flandes"></video>
     </div>
-  `;
+  </main>
 
-  const r = await Swal.fire({
-    icon: 'info',
-    title: 'Confirma tu solicitud',
-    html: resumenHtml,
-    showCancelButton: true,
-    confirmButtonText: 'Guardar',
-    cancelButtonText: 'Corregir'
-  });
+  <footer class="ph-pie">
+    <span>© <b>Oscar Polania</b> · Experto en soluciones digitales</span>
+    <span class="ph-pie__ver" id="ph-version"></span>
+  </footer>
 
-    if(!r.isConfirmed){
-    playSoundOnce(SOUNDS.back);
-    return;
-  }
-
-  // 1) Construimos payload
-  const payload = {
-    nombre: predialDraft.nombre,
-    documento: predialDraft.documento,
-    barrio: predialDraft.barrio,
-    whatsapp: predialDraft.whatsappFull,
-    codigo: predialDraft.codigo ? predialDraft.codigo : 'N/A',
-    solicitud: predialDraft.solicitud ? predialDraft.solicitud : 'Recibo de impuesto predial'
-  };
-
-  // 2) Abrimos WhatsApp INMEDIATAMENTE (sin await) para evitar bloqueo por pop-up
-  //    (Esto ocurre dentro del click del usuario en "Guardar")
-  openWhatsAppNoBlock_('https://wa.me/573015291277');
-
-  // 3) Guardado en segundo plano (NO usamos vista FIN)
-  //    Opcional: mostramos un loader breve para dar feedback y luego reseteamos.
-  startLoading();
-
-  apiPostToGs_(payload)
-    .then(async (res) => {
-      // error real
-      if(String(res?.status||'').toLowerCase() !== 'success'){
-        throw new Error(res?.message || 'Error guardando');
-      }
-
-      // caso “ya tiene pendiente”
-      if(res?.pending){
-        // Ya WhatsApp se abrió, así que solo limpiamos y salimos.
-        return;
-      }
-
-      // Consumir CLAVE (best-effort)
-      try{ await consumeClave_(payload.whatsapp); }catch(_){}
-
-    })
-    .catch(async (e) => {
-      // Si falla, el usuario probablemente ya está en WhatsApp, pero al volver verá el error.
-      // Esto no abre ventanas ni interrumpe la navegación.
-      try{
-        await Swal.fire({ icon:'error', title:'Error', text:String(e.message || e) });
-      }catch(_){}
-    })
-    .finally(() => {
-      stopLoading();
-      // limpiar estado y volver a login/suite (tú eliges):
-      predialDraft = null;
-      resetToLogin_(); // o showView('view-suite') si prefieres mantenerlo logueado
-    });
-
-  // Terminamos aquí: no mostramos vista fin.
-  return;
-});
-
-
-/* ================== DEFAULTS ================== */
-window.addEventListener('load', ()=>{
-  initBarrioChoices_();
-  initPaisLoginChoicesOnce_();
-  resetLoginWpp_();
-
-  // ✅ AUTO AUDIO al abrir login
-  playAutoAudio_(SOUNDS.wpp_inicio);
-});
-</script>
+  <div id="loader" class="ph-cargando" hidden aria-live="polite">
+    <div class="ph-cargando__caja" role="status">
+      <span class="ph-cargando__aro"><img src="img/icono-192.png" width="54" height="54" alt=""></span>
+      <b id="ph-cargando-txt">Un momento…</b>
+    </div>
+  </div>
 </body>
 </html>

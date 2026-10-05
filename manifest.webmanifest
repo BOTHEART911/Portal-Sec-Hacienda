@@ -1,0 +1,16 @@
+{
+  "name": "Suite · Secretaría de Hacienda de Flandes",
+  "short_name": "Hacienda Flandes",
+  "description": "Solicitud del recibo de impuesto predial y pago PSE.",
+  "lang": "es-CO",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef2f0",
+  "theme_color": "#06402B",
+  "icons": [
+    { "src": "img/icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icono-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "img/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
