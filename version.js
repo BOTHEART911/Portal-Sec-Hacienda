@@ -5,4 +5,4 @@
    sale entera de la red (lo publicado se ve a la primera).
    Formato: año.mes.día.consecutivo del día.
    ============================================================ */
-var APP_VERSION = "2026.10.04.1";
+var APP_VERSION = "2026.10.04.2";
